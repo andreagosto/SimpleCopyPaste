@@ -71,3 +71,44 @@ def test_internal_boundary_is_exclusive():
         last_internal_click=1.0,
         now=1.0 + INTERNAL_CLICK_WINDOW - 0.01,
     ) is False
+
+
+# ------------------------------------------------- subscription resilience
+
+
+class FakeConnection:
+    def __init__(self):
+        self.subscribed = []
+
+    def signal_subscribe(self, sender, iface, name, path, arg, flags, cb):
+        self.subscribed.append(name)
+        return len(self.subscribed)  # a non-zero id
+
+
+def test_subscribes_to_both_signal_names(monkeypatch):
+    # "Dismiss" is current; "Clicked" is what an extension loaded from an
+    # earlier login still emits, and it must keep working until it reloads.
+    from simplecopypaste import shell_ext
+
+    shell = shell_ext.ShellExtension()
+    conn = FakeConnection()
+    monkeypatch.setattr(shell, "_conn", lambda: conn)
+    monkeypatch.setattr(shell, "available", lambda: True)
+    shell._endpoint = ("/org/simplecopypaste/Shell", "org.simplecopypaste.Shell")
+
+    assert shell.subscribe_clicked(lambda: None) is True
+    assert conn.subscribed == ["Dismiss", "Clicked"]
+
+
+def test_subscribe_is_not_repeated(monkeypatch):
+    from simplecopypaste import shell_ext
+
+    shell = shell_ext.ShellExtension()
+    conn = FakeConnection()
+    monkeypatch.setattr(shell, "_conn", lambda: conn)
+    monkeypatch.setattr(shell, "available", lambda: True)
+    shell._endpoint = ("/org/simplecopypaste/Shell", "org.simplecopypaste.Shell")
+
+    shell.subscribe_clicked(lambda: None)
+    shell.subscribe_clicked(lambda: None)
+    assert conn.subscribed == ["Dismiss", "Clicked"]

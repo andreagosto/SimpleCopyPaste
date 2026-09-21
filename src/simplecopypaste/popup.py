@@ -7,6 +7,7 @@ import time
 
 from .gtk_ui import Gdk, GLib, Gtk, Pango, should_autohide
 from .clickaway import ClickAway, should_close_on_click
+from . import x11time
 from . import images, input_inject
 from .pointer import Pointer
 from .store import IMAGE, Clip
@@ -262,6 +263,20 @@ class Popup:
         )
         self.settings_button.connect("clicked", lambda _b: self._open_settings())
         header.pack_start(self.settings_button, False, False, 0)
+
+        # An explicit way out, next to Esc: the panel can be dismissed in
+        # several ways (Esc, picking a clip, clicking away) and a visible
+        # control makes that discoverable instead of a hidden convention.
+        self.close_button = Gtk.Button()
+        self.close_button.get_style_context().add_class("sc-tool")
+        self.close_button.set_relief(Gtk.ReliefStyle.NONE)
+        self.close_button.set_can_focus(False)
+        self.close_button.set_tooltip_text("Close (Esc)")
+        self.close_button.add(
+            Gtk.Image.new_from_icon_name("window-close-symbolic", Gtk.IconSize.BUTTON)
+        )
+        self.close_button.connect("clicked", lambda _b: self.hide())
+        header.pack_start(self.close_button, False, False, 0)
 
         self.scroller = Gtk.ScrolledWindow()
         self.scroller.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -541,10 +556,25 @@ class Popup:
             x = y = 100
 
         self.window.move(int(x), int(y))
-        self.window.present()
+        self._present()
         if self.entry is not None:
             self.entry.grab_focus()
         return False
+
+    def _present(self) -> None:
+        """Show the popup and ask for the keyboard.
+
+        The daemon is started at login and never sees a user event, so GTK
+        would present the window with a timestamp of 0. Mutter reads that as a
+        stale request and refuses to focus it, which left the popup unable to
+        receive typing and unable to notice focus moving away. Handing it the
+        current X server time makes it a normal, focusable window.
+        """
+        stamp = x11time.server_time()
+        if stamp:
+            self.window.present_with_time(stamp)
+        else:
+            self.window.present()
 
     def _apply_size(self) -> None:
         """Pin the popup to the configured width and the content height.

@@ -37,7 +37,8 @@ pinning, search — nothing more, nothing less.
   or simply copies and tells you what to install.
 - **Keyboard driven** — arrows, `Enter`, `Ctrl+P`, `Ctrl+D`, `Esc`.
 - **Closes when you click away** — both the clipboard panel and the settings
-  window disappear as soon as you click outside them.
+  window disappear as soon as you click elsewhere, including the desktop. The
+  panel also has an explicit **×** beside the search field, and `Esc` works.
 - **Top-bar icon** — sits with your other status icons; click it to open the
   clipboard, right-click for a small menu with *Open clipboard* and
   *Settings*. The launcher entry also puts the app in the dash.
@@ -95,9 +96,11 @@ provides all three:
   shows a menu with *Open clipboard* and *Settings*;
 - the real pointer position, so the popup opens at the cursor;
 - the paste shortcut, applied when you pick a clip;
-- a report when you click the desktop or the top bar, so the popup and the
-  settings window can close. Those clicks never move keyboard focus, so
-  watching for focus loss alone would miss them.
+- a report when the user goes elsewhere — a click on the desktop or the top
+  bar, or focus moving to another window — so the panel can close. Neither is
+  visible to the app otherwise: those clicks do not move keyboard focus, and
+  the panel never takes it (XWayland keeps the keyboard following the pointer,
+  which is why typing works while the pointer is over the panel).
 
 It only acts when you ask for it.
 

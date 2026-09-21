@@ -41,12 +41,18 @@ const IFACE = `
       <arg type="b" direction="in" name="on"/>
       <arg type="b" direction="out" name="ok"/>
     </method>
+    <!-- "the user went elsewhere": close the panel. Renamed from Clicked,
+         which no longer described it once focus changes counted too. -->
+    <signal name="Dismiss"/>
     <signal name="Clicked"/>
   </interface>
 </node>`;
 
 const OBJECT_PATH = '/org/simplecopypaste/Shell';
 const CLI = 'simplecopypaste';
+
+// WM_CLASS of our windows, used to tell our own popup from other windows.
+const WM_CLASS = 'simplecopypaste';
 
 const MODIFIERS = {
     ctrl: 'KEY_Control_L',
@@ -105,11 +111,29 @@ export default class SimpleCopyPasteShellExtension extends Extension {
         this._stageId = global.stage.connect('captured-event', (_stage, event) => {
             if (this._clickWatch &&
                 event.type() === Clutter.EventType.BUTTON_PRESS)
-                this._object.emit_signal('Clicked', null);
+                this._dismiss('click on the shell');
             return Clutter.EVENT_PROPAGATE;
         });
 
+        // Clicking another window is the other case the app cannot see: the
+        // popup never takes keyboard focus (XWayland keeps it following the
+        // pointer), so nothing is lost and no focus-out arrives. The
+        // compositor knows which window is focused, so watch that instead.
+        this._focusId = global.display.connect('notify::focus-window', () => {
+            if (!this._clickWatch)
+                return;
+            const focused = global.display.focus_window;
+            if (focused && focused.get_wm_class() === WM_CLASS)
+                return;  // focus moved to our own popup, not away from it
+            this._dismiss('focus moved to another window');
+        });
+
         this._buildIndicator();
+    }
+
+    _dismiss(reason) {
+        log(`SimpleCopyPaste: dismiss (${reason})`);
+        this._object.emit_signal('Dismiss', null);
     }
 
     // Called by the app while a popup is on screen.
@@ -270,6 +294,10 @@ export default class SimpleCopyPasteShellExtension extends Extension {
         if (this._stageId) {
             global.stage.disconnect(this._stageId);
             this._stageId = 0;
+        }
+        if (this._focusId) {
+            global.display.disconnect(this._focusId);
+            this._focusId = 0;
         }
         if (this._indicator) {
             this._indicator.destroy();

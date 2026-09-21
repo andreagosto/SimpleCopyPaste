@@ -127,7 +127,7 @@ def test_extension_metadata_is_valid_and_current():
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")
     )
     assert metadata["uuid"] == install.EXTENSION_UUID
-    assert metadata["version"] >= 10
+    assert metadata["version"] >= 11
     assert "shell-version" in metadata
 
 

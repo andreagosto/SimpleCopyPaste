@@ -41,7 +41,7 @@ class ShellExtension:
         self._state: bool | None = None
         self._last_failure = 0.0
         self._endpoint: tuple[str, str] | None = None
-        self._signal_id = None
+        self._signal_ids: list[int] = []
 
     def _conn(self):
         if self._connection is None:
@@ -156,8 +156,9 @@ class ShellExtension:
             return False
 
     def subscribe_clicked(self, callback) -> bool:
-        """Run *callback* whenever the extension reports a click.
+        """Run *callback* whenever the extension says the panel should close.
 
+        That is a click on a shell surface, or focus moving to another window.
         The callback receives no arguments. Returns False when the extension
         cannot provide the signal (older build, or not installed).
         """
@@ -166,7 +167,7 @@ class ShellExtension:
         endpoint = self._endpoint
         if endpoint is None or endpoint[1] != "org.simplecopypaste.Shell":
             return False
-        if self._signal_id is not None:
+        if self._signal_ids:
             return True
 
         def _dispatch(*_args):
@@ -178,20 +179,26 @@ class ShellExtension:
             except Exception:
                 pass
 
-        try:
-            # Filter on interface, signal and path but not on the sender: the
-            # shell's bus name is the natural filter, yet leaving it out costs
-            # nothing (the other three already pin it down) and avoids
-            # depending on how the shell names itself.
-            self._signal_id = self._conn().signal_subscribe(
-                None,
-                endpoint[1],
-                "Clicked",
-                endpoint[0],
-                None,
-                Gio.DBusSignalFlags.NONE,
-                _dispatch,
-            )
-        except Exception:
-            return False
-        return True
+        # "Dismiss" is the current name; "Clicked" is what earlier builds
+        # emitted, kept so an extension that is still loaded from a previous
+        # login keeps working.
+        for name in ("Dismiss", "Clicked"):
+            try:
+                # Filter on interface, signal and path but not on the sender:
+                # the shell's bus name is the natural filter, yet leaving it
+                # out costs nothing (the other three already pin it down) and
+                # avoids depending on how the shell names itself.
+                signal_id = self._conn().signal_subscribe(
+                    None,
+                    endpoint[1],
+                    name,
+                    endpoint[0],
+                    None,
+                    Gio.DBusSignalFlags.NONE,
+                    _dispatch,
+                )
+            except Exception:
+                continue
+            if signal_id:
+                self._signal_ids.append(signal_id)
+        return bool(self._signal_ids)
