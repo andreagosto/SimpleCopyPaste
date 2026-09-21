@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "simplecopypaste"
-version = "0.1.0"
+version = "0.1.1"
 description = "A tiny Win+V style clipboard history for Linux desktops (GNOME/Wayland friendly)"
 readme = "README.md"
 requires-python = ">=3.9"
