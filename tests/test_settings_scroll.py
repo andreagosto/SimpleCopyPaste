@@ -65,3 +65,39 @@ def test_every_number_field_ignores_the_wheel():
     for field in fields:
         consumed = window._on_spin_scroll(FakeSpin(focused=False), None)
         assert consumed is True
+
+
+# --------------------------------------------------- dropdown must not close
+
+
+class FakeCombo:
+    def __init__(self, shown: bool) -> None:
+        self._shown = shown
+
+    def get_property(self, name: str):
+        assert name == "popup-shown"
+        return self._shown
+
+
+def test_open_dropdown_counts_as_a_popup():
+    from simpleclips.gtk_ui import any_popup_open
+
+    assert any_popup_open([FakeCombo(False), FakeCombo(True)]) is True
+
+
+def test_no_popup_when_every_dropdown_is_closed():
+    from simpleclips.gtk_ui import any_popup_open
+
+    assert any_popup_open([FakeCombo(False), FakeCombo(False)]) is False
+
+
+def test_no_popup_with_no_combos():
+    from simpleclips.gtk_ui import any_popup_open
+
+    assert any_popup_open([]) is False
+
+
+def test_settings_registers_its_dropdowns():
+    window = make_settings()
+    assert window._choice_boxes, "the shortcut dropdown must be tracked"
+    assert any(hasattr(c, "get_property") for c in window._choice_boxes)

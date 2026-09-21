@@ -210,7 +210,7 @@ class Daemon:
                 if data is None:
                     log.warning("image blob missing: %s", clip.image)
                 else:
-                    self.clipboard.set_bytes(data, clip.mime or "image/png")
+                    self._set_image_on_clipboard(data, clip.mime)
             else:
                 self.clipboard.set_text(clip.text)
         except Exception as exc:  # pragma: no cover - clipboard can be flaky
@@ -220,6 +220,19 @@ class Daemon:
         self.popup.hide()
         if self.config.paste and self.paste_backend != "none":
             GLib.timeout_add(240, self._do_paste)
+
+    def _set_image_on_clipboard(self, data: bytes, mime: str) -> None:
+        """Put an image on the clipboard.
+
+        Programs differ in what they will read: Chromium asks for
+        ``image/png`` alone, so a clip stored as JPEG reached the browser as
+        nothing. The stored blob keeps its original format; the conversion
+        happens only here, on paste.
+        """
+        payload, payload_mime = images.png_for_clipboard(data, mime)
+        if payload_mime != "image/png":
+            log.warning("could not re-encode %s as PNG; sending as-is", mime)
+        self.clipboard.set_bytes(payload, payload_mime)
 
     def _do_paste(self) -> bool:
         threading.Thread(

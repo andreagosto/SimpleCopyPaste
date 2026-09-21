@@ -6,7 +6,14 @@ import os
 import subprocess
 import time
 
-from .gtk_ui import Gdk, Gtk, set_app_icon, should_autohide
+from .gtk_ui import (
+    Gdk,
+    GLib,
+    Gtk,
+    any_popup_open,
+    set_app_icon,
+    should_autohide,
+)
 from .clickaway import ClickAway, should_close_on_click
 from . import input_inject
 
@@ -37,6 +44,7 @@ class SettingsWindow:
         self._loading = False
         self._shown_at = 0.0
         self._internal_click_at = 0.0
+        self._choice_boxes: list[Gtk.ComboBoxText] = []
         self.click_away = ClickAway(self._on_global_click)
         self._build()
 
@@ -302,6 +310,9 @@ class SettingsWindow:
                 self._save()
 
         combo.connect("changed", on_change)
+        # Remember it so focus loss caused by opening its dropdown is not
+        # mistaken for a click elsewhere.
+        self._choice_boxes.append(combo)
         self._row(title, hint, combo)
         return combo
 
@@ -444,7 +455,18 @@ class SettingsWindow:
         if self.window is not None and should_autohide(
             self.window.get_visible(), self._shown_at, time.time()
         ):
-            self.hide()
+            # Decide on the next idle: when a dropdown opens, focus moves to
+            # its own toplevel, and that has to be allowed to settle before
+            # we can tell "our popup" from "another application".
+            GLib.idle_add(self._close_if_focus_left)
+        return False
+
+    def _close_if_focus_left(self) -> bool:
+        if self.window is None or not self.window.get_visible():
+            return False
+        if any_popup_open(self._choice_boxes):
+            return False
+        self.hide()
         return False
 
     def _on_global_click(self) -> None:

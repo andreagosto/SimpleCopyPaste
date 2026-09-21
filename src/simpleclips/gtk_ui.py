@@ -50,6 +50,23 @@ def should_autohide(
     return bool(visible) and (now - shown_at) > grace
 
 
+def any_popup_open(combos) -> bool:
+    """True while one of these combo boxes has its dropdown open.
+
+    A dropdown lives in its own toplevel, so opening it moves focus away from
+    the window and looks exactly like a click elsewhere. ``is_active()`` on
+    that popup toplevel is not dependable, but each combo reports this
+    property reliably (``notify::popup-shown``).
+    """
+    for combo in combos:
+        try:
+            if combo.get_property("popup-shown"):
+                return True
+        except Exception:
+            continue
+    return False
+
+
 def set_app_icon() -> None:
     """Use the bundled icon for our windows.
 

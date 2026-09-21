@@ -42,6 +42,38 @@ def decode(data: bytes):
     return _pixbuf_from_bytes(data)
 
 
+def to_png(data: bytes) -> bytes | None:
+    """Re-encode an image as PNG.
+
+    Programs that paste images are not equally generous: Chromium asks the
+    clipboard for ``image/png`` and nothing else, so a clip offered as JPEG
+    pastes into a browser as nothing at all. PNG is the one format every
+    consumer understands, so that is what goes on the clipboard.
+    """
+    pixbuf = _pixbuf_from_bytes(data)
+    if pixbuf is None:
+        return None
+    try:
+        ok, encoded = pixbuf.save_to_bufferv("png", [], [])
+    except Exception:
+        return None
+    return bytes(encoded) if ok else None
+
+
+def png_for_clipboard(data: bytes, mime: str) -> tuple[bytes, str]:
+    """Return (bytes, mime) to place on the clipboard for an image.
+
+    Always prefers PNG; falls back to the original when it cannot be
+    re-encoded, so a pasted clip is never worse than the stored file.
+    """
+    if mime == "image/png" or not mime:
+        return data, "image/png"
+    png = to_png(data)
+    if png is None:
+        return data, mime
+    return png, "image/png"
+
+
 def dimensions(data: bytes) -> tuple[int, int] | None:
     """Pixel size of the image.
 
