@@ -137,6 +137,44 @@ def _extensions_dir() -> Path:
     return Path(base) / "gnome-shell" / "extensions"
 
 
+# --------------------------------------------------------------- icons
+
+
+def _icons_dir() -> Path:
+    base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    return Path(base) / "icons" / "hicolor"
+
+
+def _icon_source() -> Path:
+    return Path(__file__).resolve().parent / "icons"
+
+
+def install_icons() -> bool:
+    """Place the app icon in the user's icon theme.
+
+    Both a scalable SVG and a 512px PNG are installed, so it resolves at any
+    size for the settings window, task switcher, notifications and menus.
+    """
+    source = _icon_source()
+    targets = [
+        (_icons_dir() / "scalable" / "apps" / "simpleclips.svg", source / "simpleclips.svg"),
+        (_icons_dir() / "512x512" / "apps" / "simpleclips.png", source / "simpleclips.png"),
+    ]
+    installed = False
+    for target, origin in targets:
+        if not origin.exists():
+            continue
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(origin, target)
+            installed = True
+        except OSError as exc:
+            print(f"  could not install icon {target.name}: {exc}", file=sys.stderr)
+    if installed:
+        _run(["gtk-update-icon-cache", "--force", "--ignore-theme-index", str(_icons_dir())])
+    return installed
+
+
 def _extension_source() -> Path:
     return Path(__file__).resolve().parent / "gnome_extension"
 
@@ -249,6 +287,8 @@ def install(hotkey: str = "<Super><Alt>v") -> int:
         )
     service = install_service()
     print(f"systemd user service: {service}")
+    if install_icons():
+        print(f"app icon: {_icons_dir() / 'scalable' / 'apps' / 'simpleclips.svg'}")
     if install_keybinding(hotkey):
         print(f"GNOME shortcut: {hotkey} -> simpleclips toggle")
     else:

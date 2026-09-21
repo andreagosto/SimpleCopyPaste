@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 
-from .gtk_ui import Gdk, Gtk
+from .gtk_ui import Gdk, Gtk, set_app_icon
 from . import input_inject
 
 MP = 1_000_000
@@ -38,6 +38,7 @@ class SettingsWindow:
     # ---------------------------------------------------------------- build
 
     def _build(self) -> None:
+        set_app_icon()
         self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
         self.window.set_title("SimpleClips Settings")
         self.window.set_resizable(False)

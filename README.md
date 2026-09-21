@@ -1,5 +1,7 @@
 # SimpleClips
 
+<img src="docs/icon.png" width="110" alt="SimpleClips icon" align="right">
+
 A tiny **Win+V style clipboard history for Linux desktops**. Press a shortcut,
 a small panel opens *at your mouse pointer*, click an entry and it is pasted
 where you were typing.
@@ -8,6 +10,10 @@ No databases, no cloud, no 200-option settings window. Text **and images**,
 pinning, search — nothing more, nothing less.
 
 ![SimpleClips popup](docs/screenshot.png)
+
+> Built to replace CopyQ on GNOME/Wayland: the basics did not work, and the
+> rest was more configuration than the job needed. See
+> [Development](#development) for how it was made.
 
 ## Features
 
@@ -238,13 +244,57 @@ History lives in `~/.local/share/simpleclips/history.json`; image blobs in
 `~/.local/share/simpleclips/images/`. Delete either directory for a fresh
 start.
 
-## Development
+## Running from source
 
 ```bash
 python3 -m pytest tests -q     # unit tests
 PYTHONPATH=src python3 -m simpleclips doctor
 PYTHONPATH=src python3 -m simpleclips daemon
 ```
+
+## Stack
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Language | Python 3.9+ | no build step, ships everywhere, easy to read |
+| UI | GTK 3 + PyGObject | the native stack on GNOME; GTK4 cannot position a window at the cursor |
+| Compositor glue | ~60-line GNOME Shell extension (GJS) | Wayland hides the pointer and blocks synthetic input; the extension asks the compositor instead |
+| Clipboard | `wl-clipboard` on Wayland, `xclip` on X11 | detect at runtime, no hard dependency |
+| Paste | GNOME extension, then `ydotool`, then `xdotool` | works on stock GNOME with nothing to install |
+| Storage | one JSON file + a folder of image blobs | inspectable, greppable, no database |
+| IPC | Unix socket, one daemon + thin CLI | the shortcut stays a fast, disposable command |
+| Tests | pytest, 71 tests | placement maths, store invariants, header parsing, IPC |
+
+No third-party runtime dependencies: everything comes from the Python
+standard library, PyGObject, and the clipboard tools already present.
+
+## Development
+
+This project was built **iteratively with an AI coding agent**: each feature
+was implemented, exercised on a real GNOME/Wayland session, and adjusted from
+what the screen actually showed — including the parts that did not work the
+first time.
+
+- **Human (IO)** — defined the product: a `Win+V` for Linux, nothing more;
+  tested every build on the desktop; reported each defect in words
+  ("the panel opens in the corner", "the padding is zero", "images cannot be
+  pasted", "fonts are unreadable"); chose the trade-offs.
+- **Code Agent (opencode)** — explored the environment, wrote and refactored
+  the code, added the tests, and ran the diagnostics.
+- **LLM (DeepSeek Flash)** — the model behind the agent.
+
+That loop is why several design decisions look the way they do. A few were
+found by measurement, not assumption:
+
+- the first popup had no background: `set_app_paintable` disables GTK's own
+  painting, so it had to draw its own;
+- `Gtk.EventBox` ignores CSS padding, so the inset moved to the inner box;
+- `wl-paste --watch` is a no-op on GNOME (no data-control protocol), so
+  watching moved to GTK's `owner-change` signal;
+- on Wayland the XWayland pointer freezes over native windows, so positioning
+  needed the shell extension;
+- `Gtk.EventBox` sizing, `set_with_data` absence, and a stop() that deleted a
+  socket it never created — each caught by a test or a live check.
 
 ## Roadmap
 

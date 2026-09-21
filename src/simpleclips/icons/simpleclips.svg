@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SimpleClips icon: a small stack of clipped sheets, the newest one on top
+  with its first line picked out in the app's terracotta. Uses the same
+  palette as the popup and settings windows.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9845a"/>
+      <stop offset="1" stop-color="#9a5a31"/>
+    </linearGradient>
+    <filter id="card-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#4a2a12" flood-opacity="0.34"/>
+    </filter>
+    <filter id="clip-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#4a2a12" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- rounded app tile -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+
+  <!-- sheets behind, peeking to the lower right -->
+  <rect x="176" y="188" width="246" height="264" rx="30" fill="#ffffff" opacity="0.26"/>
+  <rect x="154" y="166" width="246" height="264" rx="30" fill="#ffffff" opacity="0.50"/>
+
+  <!-- the sheet on top -->
+  <rect x="132" y="144" width="246" height="264" rx="30" fill="#ffffff" filter="url(#card-shadow)"/>
+
+  <!-- clip at the top of the sheet -->
+  <rect x="205" y="118" width="100" height="52" rx="18" fill="#9a5a31" filter="url(#clip-shadow)"/>
+  <rect x="229" y="134" width="52" height="20" rx="10" fill="#f3e6da" opacity="0.9"/>
+
+  <!-- the clips: the top line is the one currently on the clipboard -->
+  <rect x="166" y="212" width="178" height="22" rx="11" fill="#b06a3b"/>
+  <rect x="166" y="252" width="140" height="22" rx="11" fill="#ded7cb"/>
+  <rect x="166" y="292" width="178" height="22" rx="11" fill="#ded7cb"/>
+  <rect x="166" y="332" width="106" height="22" rx="11" fill="#ded7cb"/>
+</svg>

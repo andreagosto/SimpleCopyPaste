@@ -26,4 +26,19 @@ gi.require_version("GdkPixbuf", "2.0")
 gi.require_version("Gio", "2.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango  # noqa: E402,F401
 
-__all__ = ["Gdk", "GdkPixbuf", "Gio", "GLib", "Gtk", "Pango"]
+__all__ = ["Gdk", "GdkPixbuf", "Gio", "GLib", "Gtk", "Pango", "set_app_icon"]
+
+
+def set_app_icon() -> None:
+    """Use the bundled icon for our windows.
+
+    Loaded from the package rather than the icon theme, so the settings
+    window and dialogs look right even before ``simpleclips install``.
+    """
+    path = os.path.join(os.path.dirname(__file__), "icons", "simpleclips.png")
+    if not os.path.exists(path):
+        return
+    try:
+        Gtk.Window.set_default_icon_from_file(path)
+    except Exception:
+        pass
