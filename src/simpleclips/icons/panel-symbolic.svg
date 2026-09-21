@@ -3,27 +3,15 @@
   <!--
     SimpleClips panel mark, symbolic.
 
-    Line art on a 16x16 grid, in the style GNOME uses for panel icons: a
-    single ink colour that the shell replaces with the theme's foreground,
-    so the mark follows a light or dark top bar. Scissors cutting a small
-    notepad.
+    A clipboard silhouette: the simplest shape that still says "clipboard"
+    at the 16px the top bar uses. An earlier line-art version (scissors and
+    a notepad) turned to mush at that size. The single ink colour is
+    replaced by the shell with the theme foreground, so the mark follows a
+    light or dark bar.
 
-    The comment lives inside the root element on purpose: gdk-pixbuf sniffs
-    the first bytes to pick a loader, and anything before "<svg" delays that
-    match past its window.
+    This comment sits inside the root element on purpose: gdk-pixbuf sniffs
+    the opening bytes to pick a loader, and text before "<svg" pushes the
+    match out of its window, making the icon fail to load.
   -->
-  <g fill="none" stroke="#2e3436" stroke-width="1.25"
-     stroke-linecap="round" stroke-linejoin="round">
-    <!-- scissors: two blades crossing, a ring on each handle -->
-    <path d="M 2.9 2.3 L 8.5 11.2"/>
-    <path d="M 9.5 2.3 L 3.9 11.2"/>
-    <circle cx="8.9" cy="12.7" r="1.5"/>
-    <circle cx="3.5" cy="12.7" r="1.5"/>
-    <!-- notepad -->
-    <rect x="10.7" y="2.4" width="3.9" height="5.6" rx="0.6"/>
-    <path d="M 11.5 4.5 L 13.8 4.5"/>
-    <path d="M 11.5 6.6 L 13.8 6.6"/>
-  </g>
-  <!-- pivot -->
-  <circle cx="6.2" cy="7.1" r="0.6" fill="#2e3436"/>
+  <path fill="#2e3436" d="M 6 1 a 1 1 0 0 0 -1 1 H 4 A 2 2 0 0 0 2 4 v 9 a 2 2 0 0 0 2 2 h 8 a 2 2 0 0 0 2 -2 V 4 A 2 2 0 0 0 12 2 H 11 A 1 1 0 0 0 10 1 z m -2 3 h 1 v 1 h 6 V 4 h 1 v 9 H 4 z m 2 3 v 1.5 h 5 V 7 z m 0 3 v 1.5 h 3 V 10 z"/>
 </svg>
