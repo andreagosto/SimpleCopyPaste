@@ -2,6 +2,9 @@
 
 <img src="docs/icon.png" width="110" alt="SimpleCopyPaste icon" align="right">
 
+[![CI](https://github.com/andreagosto/SimpleCopyPaste/actions/workflows/ci.yml/badge.svg)](https://github.com/andreagosto/SimpleCopyPaste/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A tiny **Win+V style clipboard history for Linux desktops**. Press a shortcut,
 a small panel opens *at your mouse pointer*, click an entry and it is pasted
 where you were typing.
