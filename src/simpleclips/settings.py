@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import os
 import subprocess
+import time
 
-from .gtk_ui import Gdk, Gtk, set_app_icon
+from .gtk_ui import Gdk, Gtk, set_app_icon, should_autohide
 from . import input_inject
 
 MP = 1_000_000
@@ -33,6 +34,7 @@ class SettingsWindow:
         self.app = app
         self.window: Gtk.Window | None = None
         self._loading = False
+        self._shown_at = 0.0
         self._build()
 
     # ---------------------------------------------------------------- build
@@ -47,6 +49,7 @@ class SettingsWindow:
         self.window.get_style_context().add_class("sc-settings")
         self.window.connect("key-press-event", self._on_key)
         self.window.connect("delete-event", self._on_delete)
+        self.window.connect("focus-out-event", self._on_focus_out)
 
         self._load_css()
 
@@ -345,6 +348,7 @@ class SettingsWindow:
         if self.status is not None:
             self.status.hide()
         self.window.present()
+        self._shown_at = time.time()
 
     def hide(self) -> None:
         if self.window is not None:
@@ -412,3 +416,12 @@ class SettingsWindow:
     def _on_delete(self, _widget, _event) -> bool:
         self.hide()
         return True
+
+    def _on_focus_out(self, _widget, _event) -> bool:
+        """Close when the click lands outside: focus moves to whatever was
+        clicked, so losing focus is the signal we want."""
+        if self.window is not None and should_autohide(
+            self.window.get_visible(), self._shown_at, time.time()
+        ):
+            self.hide()
+        return False

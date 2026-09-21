@@ -33,9 +33,11 @@ pinning, search — nothing more, nothing less.
   Wayland too, and without ydotool. Falls back to ydotool/xdotool elsewhere,
   or simply copies and tells you what to install.
 - **Keyboard driven** — arrows, `Enter`, `Ctrl+P`, `Ctrl+D`, `Esc`.
-- **Top-bar icon** — sits with your other status icons; click it to open
-  Settings, right-click for a small menu. The launcher entry also puts the
-  app in the dash with its own icon.
+- **Closes when you click away** — both the clipboard panel and the settings
+  window disappear as soon as you click outside them.
+- **Top-bar icon** — sits with your other status icons; click it to open the
+  clipboard, right-click for a small menu with *Open clipboard* and
+  *Settings*. The launcher entry also puts the app in the dash.
 - **Tiny** — a single Python process, GTK3, one JSON file and a folder of
   image blobs.
 
@@ -86,8 +88,8 @@ a keystroke, or add a top-bar indicator. So `simpleclips install` also installs
 a small **GNOME Shell extension** (`simpleclips@simpleclips.github.io`) that
 provides all three:
 
-- an icon in the top bar — **left click opens Settings**, right click shows a
-  menu with *Open clipboard* and *Settings*;
+- an icon in the top bar — **left click opens the clipboard**, right click
+  shows a menu with *Open clipboard* and *Settings*;
 - the real pointer position, so the popup opens at the cursor;
 - the paste shortcut, applied when you pick a clip.
 

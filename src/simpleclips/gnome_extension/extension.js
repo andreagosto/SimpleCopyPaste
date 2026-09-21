@@ -7,7 +7,7 @@
 //   * GetPointer — where the cursor is, so the popup opens at the mouse.
 //   * Paste      — a Ctrl+V (or other combo) so picking a clip pastes it,
 //                  with no need for ydotool or any extra permission.
-//   * a panel indicator whose left click opens the settings window.
+//   * a panel indicator whose left click opens the clip records.
 //
 // It only acts when the user asks for it.
 
@@ -98,9 +98,10 @@ export default class SimpleClipsShellExtension extends Extension {
     // -------------------------------------------------------- panel icon
 
     _buildIndicator() {
-        // Left click opens the settings directly, so the menu is left to the
-        // right button. The Indicator subclass keeps the two apart.
-        this._indicator = new Indicator(this.metadata.name, () => this._run('settings'));
+        // Left click opens the clip records, the same thing the keyboard
+        // shortcut does; the settings live in the menu, on the right button.
+        // The Indicator subclass keeps the two apart.
+        this._indicator = new Indicator(this.metadata.name, () => this._run('toggle'));
         this._indicator.add_child(this._panelIcon());
 
         this._indicator.menu.addAction('Open clipboard', () => this._run('toggle'));

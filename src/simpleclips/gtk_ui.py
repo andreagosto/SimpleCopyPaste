@@ -26,7 +26,28 @@ gi.require_version("GdkPixbuf", "2.0")
 gi.require_version("Gio", "2.0")
 from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango  # noqa: E402,F401
 
-__all__ = ["Gdk", "GdkPixbuf", "Gio", "GLib", "Gtk", "Pango", "set_app_icon"]
+__all__ = [
+    "Gdk",
+    "GdkPixbuf",
+    "Gio",
+    "GLib",
+    "Gtk",
+    "Pango",
+    "set_app_icon",
+    "should_autohide",
+]
+
+# A window ignores focus loss for this long after appearing. Showing a window
+# briefly moves focus around, and without the grace period the window would
+# close itself on the spot.
+FOCUS_OUT_GRACE = 0.25
+
+
+def should_autohide(
+    visible: bool, shown_at: float, now: float, grace: float = FOCUS_OUT_GRACE
+) -> bool:
+    """Whether losing focus should close a popup/settings window."""
+    return bool(visible) and (now - shown_at) > grace
 
 
 def set_app_icon() -> None:

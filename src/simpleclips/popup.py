@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import time
 
-from .gtk_ui import Gdk, GLib, Gtk, Pango
+from .gtk_ui import Gdk, GLib, Gtk, Pango, should_autohide
 from . import images, input_inject
 from .pointer import Pointer
 from .store import IMAGE, Clip
@@ -15,6 +15,20 @@ TOOLTIP_CHARS = 2000
 TOOLTIP_WIDTH = 72
 POINTER_OFFSET = 14
 THUMB_HEIGHT = 60
+
+# After the popup hides, ignore "open" requests for this long. Closing by
+# clicking outside or on the panel icon itself hides first and asks to reopen
+# a moment later; without the guard the popup would refuse to close.
+REOPEN_GUARD = 0.6
+
+
+def within_reopen_guard(
+    hidden_at: float, now: float, guard: float = REOPEN_GUARD
+) -> bool:
+    """True while an "open" request should be ignored after a guarded hide."""
+    if hidden_at <= 0.0:
+        return False
+    return (now - hidden_at) < guard
 
 
 def _wrap_for_tooltip(text: str, width: int = TOOLTIP_WIDTH) -> str:
@@ -180,6 +194,7 @@ class Popup:
         self.query = ""
         self.visible = False
         self._shown_at = 0.0
+        self._hidden_at = 0.0
         self._thumbs: dict[str, object] = {}
         self.pointer = Pointer()
         self._build()
@@ -457,6 +472,11 @@ class Popup:
         self._size = None
 
     def show(self) -> None:
+        # Clicking the panel icon while the popup is open closes it: losing
+        # focus hides the popup, and the toggle command then arrives a moment
+        # later asking to open it again. Ignore that, or it would never close.
+        if within_reopen_guard(self._hidden_at, time.time()):
+            return
         self.app.sync_clipboard()
         self.query = ""
         if self.entry is not None:
@@ -471,10 +491,19 @@ class Popup:
         self._shown_at = time.time()
         GLib.idle_add(self._place)
 
-    def hide(self) -> None:
+    def hide(self, guard_reopen: bool = False) -> None:
+        """Hide the popup.
+
+        ``guard_reopen`` is set when the popup closes because focus moved
+        away: the click that stole focus (often the panel icon itself) also
+        triggers a toggle a moment later, and without a short guard the popup
+        would immediately reappear instead of closing.
+        """
         if self.window is not None:
             self.window.hide()
         self.visible = False
+        if guard_reopen:
+            self._hidden_at = time.time()
         # A warning is shown once: clearing it here means it disappears when
         # the popup closes, whether it was seen live or on the next open.
         self.app.notice = ""
@@ -598,8 +627,8 @@ class Popup:
         return False
 
     def _on_focus_out(self, _widget, _event) -> bool:
-        if self.visible and (time.time() - self._shown_at) > 0.25:
-            self.hide()
+        if should_autohide(self.visible, self._shown_at, time.time()):
+            self.hide(guard_reopen=True)
         return False
 
     def _on_delete(self, _widget, _event) -> bool:
