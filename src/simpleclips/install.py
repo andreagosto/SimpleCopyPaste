@@ -240,11 +240,12 @@ def remove_desktop() -> None:
     _run(["update-desktop-database", str(_applications_dir())])
 
 
-# The panel icon is the simple glyph, not the illustration: at the 16px the
-# top bar uses, the detailed artwork turns to mush. It is bundled inside the
-# extension so the button works regardless of the icon theme.
-PANEL_ICON_SOURCE = "panel.svg"
-PANEL_ICON_NAME = "simpleclips.svg"
+# The panel button uses a separate, simpler mark than the app artwork: the
+# top bar draws it around 16px, where the detailed illustration turns to
+# mush. It is bundled inside the extension so the button works regardless of
+# the icon theme.
+PANEL_ICON_SOURCE = "panel.png"
+PANEL_ICON_NAME = "panel.png"
 
 
 def is_gnome_session() -> bool:

@@ -124,7 +124,7 @@ export default class SimpleClipsShellExtension extends Extension {
         // Prefer the icon shipped inside the extension itself, so the panel
         // is right even if the icon theme copy is missing.
         let gicon;
-        const bundled = this.dir.get_child('simpleclips.svg');
+        const bundled = this.dir.get_child('panel.png');
         if (bundled.query_exists(null))
             gicon = Gio.icon_new_for_string(bundled.get_path());
         else

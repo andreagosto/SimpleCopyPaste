@@ -93,8 +93,8 @@ provides all three:
 
 It only acts when you ask for it.
 
-The top-bar button uses a small drawn glyph rather than the app artwork: at
-the 16px the panel asks for, the detailed illustration turns to mush. The
+The top-bar button uses its own simpler mark, not the app artwork: the panel
+draws it at around 16px, where the detailed illustration turns to mush. The
 illustration is used everywhere it has room — launcher, dash, window and
 notifications — as a set of pre-scaled PNGs in your icon theme.
 

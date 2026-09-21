@@ -9,8 +9,8 @@ from simpleclips import install
 
 def test_bundled_icons_exist():
     source = install._icon_source()
-    assert (source / "simpleclips.png").exists()      # artwork, app icon
-    assert (source / install.PANEL_ICON_SOURCE).exists()  # glyph, panel icon
+    assert (source / "simpleclips.png").exists()          # artwork, app icon
+    assert (source / install.PANEL_ICON_SOURCE).exists()  # panel mark
 
 
 def test_copy_panel_icon_into_extension(tmp_path):
@@ -51,5 +51,5 @@ def test_extension_metadata_is_valid_and_current():
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")
     )
     assert metadata["uuid"] == install.EXTENSION_UUID
-    assert metadata["version"] >= 4
+    assert metadata["version"] >= 5
     assert "shell-version" in metadata
