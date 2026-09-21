@@ -47,7 +47,11 @@ class SettingsWindow:
         self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
         self.window.set_title("SimpleClips Settings")
         self.window.set_resizable(False)
+        # A dialog, not an app window: it closes on click-away, so a minimise
+        # button would only be a control that does nothing. Declaring it as
+        # not belonging to the taskbar is what drops that button.
         self.window.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        self.window.set_skip_taskbar_hint(True)
         self.window.set_position(Gtk.WindowPosition.CENTER)
         self.window.get_style_context().add_class("sc-settings")
         self.window.connect("key-press-event", self._on_key)
@@ -238,6 +242,11 @@ class SettingsWindow:
             self._save()
 
         spin.connect("value-changed", on_change)
+        # A SpinButton scrolls its value on wheel events, which makes it very
+        # easy to change a setting by accident while scrolling the window.
+        # Ignore the wheel unless the field has focus, so it must be a
+        # deliberate gesture.
+        spin.connect("scroll-event", self._on_spin_scroll)
 
         if unit:
             control = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -249,6 +258,10 @@ class SettingsWindow:
         else:
             self._row(title, hint, spin)
         return spin
+
+    def _on_spin_scroll(self, widget, _event) -> bool:
+        """Swallow wheel events on number fields unless they are focused."""
+        return not widget.has_focus()
 
     def _row_bool(self, title: str, hint: str, value: bool, apply) -> Gtk.Switch:
         switch = Gtk.Switch()

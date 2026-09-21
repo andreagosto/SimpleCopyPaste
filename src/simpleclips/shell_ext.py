@@ -169,15 +169,22 @@ class ShellExtension:
         if self._signal_id is not None:
             return True
 
-        def _dispatch(_conn, _sender, _path, _iface, _signal, _params, _user):
+        def _dispatch(*_args):
+            # The exact argument list of a Gio signal callback varies with
+            # the binding version (a trailing user_data, or not), so accept
+            # whatever arrives rather than naming them.
             try:
                 callback()
             except Exception:
                 pass
 
         try:
+            # Filter on interface, signal and path but not on the sender: the
+            # shell's bus name is the natural filter, yet leaving it out costs
+            # nothing (the other three already pin it down) and avoids
+            # depending on how the shell names itself.
             self._signal_id = self._conn().signal_subscribe(
-                DBUS_NAME,
+                None,
                 endpoint[1],
                 "Clicked",
                 endpoint[0],
