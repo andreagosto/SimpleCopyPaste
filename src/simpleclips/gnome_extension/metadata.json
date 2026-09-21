@@ -1,8 +1,8 @@
 {
   "uuid": "simpleclips@simpleclips.github.io",
   "name": "SimpleClips Shell",
-  "description": "Companion for SimpleClips: reports the global pointer position and applies the paste shortcut, so the clipboard popup can open at the cursor and paste on GNOME Wayland.",
+  "description": "Companion for SimpleClips: a top-bar icon, the global pointer position, and the paste shortcut. Lets the clipboard popup open at the cursor and paste on GNOME Wayland.",
   "shell-version": ["45", "46", "47"],
-  "version": 2,
+  "version": 3,
   "url": "https://github.com/andreagosto/simpleclips"
 }

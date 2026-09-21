@@ -178,6 +178,12 @@ def install_icons() -> bool:
 def _extension_source() -> Path:
     return Path(__file__).resolve().parent / "gnome_extension"
 
+
+# Files copied into the extension folder, beyond its own JS/JSON. The panel
+# icon is bundled so the top-bar button works regardless of the icon theme.
+EXTENSION_EXTRAS = ["simpleclips.svg", "simpleclips.png"]
+
+
 def is_gnome_session() -> bool:
     desktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
     return "gnome" in desktop or "ubuntu" in desktop
@@ -221,6 +227,15 @@ def _set_enabled_extensions(uuids: list[str]) -> None:
     _gsettings_set(SHELL_SCHEMA, "enabled-extensions", repr(uuids))
 
 
+def _copy_icon_into(target: Path) -> None:
+    """Place the app icon next to the extension, for its panel button."""
+    source = _icon_source()
+    for name in EXTENSION_EXTRAS:
+        origin = source / name
+        if origin.exists():
+            shutil.copyfile(origin, target / name)
+
+
 def install_extension(hotkey_note: list[str]) -> None:
     """Install the companion GNOME Shell extension if we are on GNOME."""
     if not is_gnome_session():
@@ -231,6 +246,7 @@ def install_extension(hotkey_note: list[str]) -> None:
         if target.exists():
             shutil.rmtree(target)
         shutil.copytree(source, target)
+        _copy_icon_into(target)
     except OSError as exc:
         print(f"  could not install the GNOME extension: {exc}", file=sys.stderr)
         return

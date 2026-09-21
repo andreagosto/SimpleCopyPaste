@@ -1,17 +1,23 @@
-// SimpleClips Shell - a tiny companion for the SimpleClips clipboard tool.
+// SimpleClips Shell - the GNOME companion for the SimpleClips clipboard tool.
 //
-// GNOME Wayland does not let applications read the global pointer position
-// or synthesize keystrokes, so this extension forwards both from the
-// compositor:
+// GNOME Wayland does not let applications read the global pointer position,
+// synthesize keystrokes, or add a top-bar icon, so this extension provides
+// all three:
 //
-//   - GetPointer: where the cursor is, so the popup opens at the mouse.
-//   - Paste:      a Ctrl+V (or other combo) so picking a clip pastes it,
-//                 with no need for ydotool or any extra permission.
+//   * GetPointer — where the cursor is, so the popup opens at the mouse.
+//   * Paste      — a Ctrl+V (or other combo) so picking a clip pastes it,
+//                  with no need for ydotool or any extra permission.
+//   * a panel indicator whose left click opens the settings window.
 //
-// It only acts when the user picks a clip in SimpleClips.
+// It only acts when the user asks for it.
 
 import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
+import St from 'gi://St';
+
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -34,6 +40,7 @@ const IFACE = `
 </node>`;
 
 const OBJECT_PATH = '/org/simpleclips/Shell';
+const CLI = 'simpleclips';
 
 const MODIFIERS = {
     ctrl: 'KEY_Control_L',
@@ -54,9 +61,62 @@ const KEYS = {
 export default class SimpleClipsShellExtension extends Extension {
     enable() {
         this._device = null;
+
         this._object = Gio.DBusExportedObject.wrapJSObject(IFACE, this);
         this._object.export(Gio.DBus.session, OBJECT_PATH);
+
+        this._buildIndicator();
     }
+
+    // -------------------------------------------------------- panel icon
+
+    _buildIndicator() {
+        // Left click opens the settings directly, so the menu is left to the
+        // right button. PanelMenu.Button wants a menu to exist anyway.
+        this._indicator = new PanelMenu.Button(0.5, this.metadata.name, false);
+        this._indicator.add_child(this._panelIcon());
+
+        this._indicator.menu.addAction('Open clipboard', () => this._run('toggle'));
+        this._indicator.menu.addAction('Settings', () => this._run('settings'));
+
+        this._indicator.connect('button-press-event', (_actor, event) => {
+            if (event.get_button() === Clutter.BUTTON_PRIMARY) {
+                this._run('settings');
+                return Clutter.EVENT_STOP;  // keep the menu closed
+            }
+            return Clutter.EVENT_PROPAGATE;  // right click: show the menu
+        });
+
+        Main.panel.addToStatusArea(this.uuid, this._indicator, 0, 'right');
+    }
+
+    _panelIcon() {
+        // Prefer the icon shipped inside the extension itself, so the panel
+        // is right even if the icon theme copy is missing.
+        let gicon;
+        const bundled = this.dir.get_child('simpleclips.svg');
+        if (bundled.query_exists(null))
+            gicon = Gio.icon_new_for_string(bundled.get_path());
+        else
+            gicon = Gio.icon_new_for_string('simpleclips');
+        return new St.Icon({ gicon, style_class: 'system-status-icon' });
+    }
+
+    _run(command) {
+        try {
+            GLib.spawn_async(
+                null,
+                [CLI, command],
+                null,
+                GLib.SpawnFlags.SEARCH_PATH,
+                null
+            );
+        } catch (error) {
+            logError(error, `SimpleClips: could not run '${CLI} ${command}'`);
+        }
+    }
+
+    // ------------------------------------------------------- D-Bus API
 
     GetPointer() {
         const [x, y] = global.get_pointer();
@@ -121,6 +181,11 @@ export default class SimpleClipsShellExtension extends Extension {
 
     disable() {
         this._device = null;
+
+        if (this._indicator) {
+            this._indicator.destroy();
+            this._indicator = null;
+        }
         if (this._object) {
             this._object.unexport();
             this._object = null;

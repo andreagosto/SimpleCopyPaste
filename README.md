@@ -33,6 +33,8 @@ pinning, search — nothing more, nothing less.
   Wayland too, and without ydotool. Falls back to ydotool/xdotool elsewhere,
   or simply copies and tells you what to install.
 - **Keyboard driven** — arrows, `Enter`, `Ctrl+P`, `Ctrl+D`, `Esc`.
+- **Top-bar icon** — sits with your other status icons; click it to open
+  Settings, right-click for a small menu.
 - **Tiny** — a single Python process, GTK3, one JSON file and a folder of
   image blobs.
 
@@ -76,14 +78,19 @@ sudo apt install python3-gi gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 wl-clipboard
 sudo apt install ydotool        # optional: enables automatic Ctrl+V
 ```
 
-### Opening at the cursor and pasting on GNOME Wayland
+### Top-bar icon, cursor placement and pasting on GNOME
 
-Wayland does not let an application read the global cursor position or
-synthesize a keystroke, and the XWayland pointer is stale whenever the cursor
-is over a Wayland window. So `simpleclips install` also installs a small
-**GNOME Shell extension** (`simpleclips@simpleclips.github.io`) that forwards
-the real pointer and applies the paste shortcut on request. It only acts when
-you pick a clip in SimpleClips.
+Wayland does not let an application read the global cursor position, synthesize
+a keystroke, or add a top-bar indicator. So `simpleclips install` also installs
+a small **GNOME Shell extension** (`simpleclips@simpleclips.github.io`) that
+provides all three:
+
+- an icon in the top bar — **left click opens Settings**, right click shows a
+  menu with *Open clipboard* and *Settings*;
+- the real pointer position, so the popup opens at the cursor;
+- the paste shortcut, applied when you pick a clip.
+
+It only acts when you ask for it.
 
 After installing, **log out and back in once** so GNOME Shell loads it
 (Wayland cannot reload the Shell in place). Check with `simpleclips doctor`:
@@ -113,7 +120,6 @@ still copies the clip — you just press the paste shortcut yourself.
 **Terminals** do not use `Ctrl+V`. Set *Paste shortcut* to `Ctrl+Shift+V` in
 Settings if you mostly paste into a terminal.
 
-
 ## Install
 
 ### With pipx (recommended)
@@ -127,12 +133,13 @@ pipx install --system-site-packages .
 simpleclips install       # systemd user service + Super+Alt+V shortcut
 ```
 
-`simpleclips install` does two things:
+`simpleclips install` does three things:
 
 1. writes and enables a **systemd user service** so the daemon starts with
    your session;
 2. binds **`Super+Alt+V`** to `simpleclips toggle` through GNOME's custom
-   shortcuts (via `gsettings`).
+   shortcuts (via `gsettings`);
+3. installs the **GNOME Shell extension** and the **app icon**.
 
 Use a different shortcut with:
 
@@ -140,24 +147,11 @@ Use a different shortcut with:
 simpleclips install --hotkey '<Super><Shift>v'
 ```
 
-To remove both: `simpleclips uninstall`.
+To remove them: `simpleclips uninstall`.
 
 > Running from a source checkout without installing? Start it manually with
 > `python3 -m simpleclips daemon` (with `PYTHONPATH=src`) and bind your own
 > shortcut to `simpleclips toggle`.
-
-### Auto-paste (`ydotool`)
-
-On GNOME Wayland only `ydotool` can inject input. Install it and start its
-daemon:
-
-```bash
-sudo apt install ydotool
-sudo systemctl enable --now ydotool     # or: ydotoold &
-```
-
-`simpleclips doctor` tells you whether auto-paste is active. If it is not,
-SimpleClips still copies the clip — you just press `Ctrl+V` yourself.
 
 ## Usage
 
