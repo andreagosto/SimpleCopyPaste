@@ -41,6 +41,7 @@ class ShellExtension:
         self._state: bool | None = None
         self._last_failure = 0.0
         self._endpoint: tuple[str, str] | None = None
+        self._signal_id = None
 
     def _conn(self):
         if self._connection is None:
@@ -135,3 +136,55 @@ class ShellExtension:
         if self._endpoint is None:
             return False
         return self._endpoint[1] == "org.simpleclips.Shell"
+
+    # ------------------------------------------------------- click watching
+
+    def set_click_watch(self, on: bool) -> bool:
+        """Ask the extension to report clicks it sees on its own surfaces."""
+        if not self.available():
+            return False
+        endpoint = self._endpoint
+        if endpoint is None or endpoint[1] != "org.simpleclips.Shell":
+            return False
+        try:
+            result = self._call("SetClickWatch", GLib.Variant("(b)", (bool(on),)))
+        except Exception:
+            return False
+        try:
+            return bool(result.unpack()[0])
+        except Exception:
+            return False
+
+    def subscribe_clicked(self, callback) -> bool:
+        """Run *callback* whenever the extension reports a click.
+
+        The callback receives no arguments. Returns False when the extension
+        cannot provide the signal (older build, or not installed).
+        """
+        if not self.available():
+            return False
+        endpoint = self._endpoint
+        if endpoint is None or endpoint[1] != "org.simpleclips.Shell":
+            return False
+        if self._signal_id is not None:
+            return True
+
+        def _dispatch(_conn, _sender, _path, _iface, _signal, _params, _user):
+            try:
+                callback()
+            except Exception:
+                pass
+
+        try:
+            self._signal_id = self._conn().signal_subscribe(
+                DBUS_NAME,
+                endpoint[1],
+                "Clicked",
+                endpoint[0],
+                None,
+                Gio.DBusSignalFlags.NONE,
+                _dispatch,
+            )
+        except Exception:
+            return False
+        return True

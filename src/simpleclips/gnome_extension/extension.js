@@ -37,6 +37,11 @@ const IFACE = `
     <method name="Ping">
       <arg type="b" direction="out" name="ok"/>
     </method>
+    <method name="SetClickWatch">
+      <arg type="b" direction="in" name="on"/>
+      <arg type="b" direction="out" name="ok"/>
+    </method>
+    <signal name="Clicked"/>
   </interface>
 </node>`;
 
@@ -88,11 +93,29 @@ class SimpleClipsIndicator extends PanelMenu.Button {
 export default class SimpleClipsShellExtension extends Extension {
     enable() {
         this._device = null;
+        this._clickWatch = false;
 
         this._object = Gio.DBusExportedObject.wrapJSObject(IFACE, this);
         this._object.export(Gio.DBus.session, OBJECT_PATH);
 
+        // Clicks that land on surfaces the shell owns (the desktop, the top
+        // bar) never reach the app, and they do not move keyboard focus
+        // either, so a popup cannot notice them by watching for focus loss.
+        // The stage sees them, so report them while a popup is open.
+        this._stageId = global.stage.connect('captured-event', (_stage, event) => {
+            if (this._clickWatch &&
+                event.type() === Clutter.EventType.BUTTON_PRESS)
+                this._object.emit_signal('Clicked', null);
+            return Clutter.EVENT_PROPAGATE;
+        });
+
         this._buildIndicator();
+    }
+
+    // Called by the app while a popup is on screen.
+    SetClickWatch(on) {
+        this._clickWatch = Boolean(on);
+        return true;
     }
 
     // -------------------------------------------------------- panel icon
@@ -242,7 +265,12 @@ export default class SimpleClipsShellExtension extends Extension {
 
     disable() {
         this._device = null;
+        this._clickWatch = false;
 
+        if (this._stageId) {
+            global.stage.disconnect(this._stageId);
+            this._stageId = 0;
+        }
         if (this._indicator) {
             this._indicator.destroy();
             this._indicator = null;

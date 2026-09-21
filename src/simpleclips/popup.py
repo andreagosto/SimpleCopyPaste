@@ -6,6 +6,7 @@ import os
 import time
 
 from .gtk_ui import Gdk, GLib, Gtk, Pango, should_autohide
+from .clickaway import ClickAway, should_close_on_click
 from . import images, input_inject
 from .pointer import Pointer
 from .store import IMAGE, Clip
@@ -197,6 +198,8 @@ class Popup:
         self._hidden_at = 0.0
         self._thumbs: dict[str, object] = {}
         self.pointer = Pointer()
+        self.click_away = ClickAway(self._on_global_click)
+        self._internal_click_at = 0.0
         self._build()
 
     # ---------------------------------------------------------------- build
@@ -216,6 +219,7 @@ class Popup:
         self.window.connect("draw", self._on_draw)
         self.window.connect("key-press-event", self._on_key)
         self.window.connect("focus-out-event", self._on_focus_out)
+        self.window.connect("button-press-event", self._remember_internal_click)
         self.window.connect("delete-event", self._on_delete)
 
         try:
@@ -489,6 +493,9 @@ class Popup:
             self.hint.hide()
         self.visible = True
         self._shown_at = time.time()
+        # Watch for clicks on the desktop and the top bar, which do not move
+        # focus and would otherwise leave the popup open.
+        self.click_away.start()
         GLib.idle_add(self._place)
 
     def hide(self, guard_reopen: bool = False) -> None:
@@ -502,6 +509,7 @@ class Popup:
         if self.window is not None:
             self.window.hide()
         self.visible = False
+        self.click_away.stop()
         if guard_reopen:
             self._hidden_at = time.time()
         # A warning is shown once: clearing it here means it disappears when
@@ -629,6 +637,18 @@ class Popup:
     def _on_focus_out(self, _widget, _event) -> bool:
         if should_autohide(self.visible, self._shown_at, time.time()):
             self.hide(guard_reopen=True)
+        return False
+
+    def _on_global_click(self) -> None:
+        """A click the shell saw: on the desktop or the top bar, not on us."""
+        if should_close_on_click(
+            self.visible, self._shown_at, self._internal_click_at, time.time()
+        ):
+            self.hide(guard_reopen=True)
+
+    def _remember_internal_click(self, _widget, _event) -> bool:
+        """A press landed on the popup itself, so click-away must not fire."""
+        self._internal_click_at = time.time()
         return False
 
     def _on_delete(self, _widget, _event) -> bool:

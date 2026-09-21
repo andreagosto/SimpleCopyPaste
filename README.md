@@ -91,7 +91,10 @@ provides all three:
 - an icon in the top bar — **left click opens the clipboard**, right click
   shows a menu with *Open clipboard* and *Settings*;
 - the real pointer position, so the popup opens at the cursor;
-- the paste shortcut, applied when you pick a clip.
+- the paste shortcut, applied when you pick a clip;
+- a report when you click the desktop or the top bar, so the popup and the
+  settings window can close. Those clicks never move keyboard focus, so
+  watching for focus loss alone would miss them.
 
 It only acts when you ask for it.
 

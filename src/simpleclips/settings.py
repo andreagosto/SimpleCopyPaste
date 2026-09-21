@@ -7,6 +7,7 @@ import subprocess
 import time
 
 from .gtk_ui import Gdk, Gtk, set_app_icon, should_autohide
+from .clickaway import ClickAway, should_close_on_click
 from . import input_inject
 
 MP = 1_000_000
@@ -35,6 +36,8 @@ class SettingsWindow:
         self.window: Gtk.Window | None = None
         self._loading = False
         self._shown_at = 0.0
+        self._internal_click_at = 0.0
+        self.click_away = ClickAway(self._on_global_click)
         self._build()
 
     # ---------------------------------------------------------------- build
@@ -50,6 +53,7 @@ class SettingsWindow:
         self.window.connect("key-press-event", self._on_key)
         self.window.connect("delete-event", self._on_delete)
         self.window.connect("focus-out-event", self._on_focus_out)
+        self.window.connect("button-press-event", self._remember_internal_click)
 
         self._load_css()
 
@@ -349,10 +353,14 @@ class SettingsWindow:
             self.status.hide()
         self.window.present()
         self._shown_at = time.time()
+        # Clicks on the desktop do not move focus, so focus-out alone is not
+        # enough to notice them.
+        self.click_away.start()
 
     def hide(self) -> None:
         if self.window is not None:
             self.window.hide()
+        self.click_away.stop()
 
     def toggle(self) -> None:
         if self.window is not None and self.window.get_visible():
@@ -424,4 +432,21 @@ class SettingsWindow:
             self.window.get_visible(), self._shown_at, time.time()
         ):
             self.hide()
+        return False
+
+    def _on_global_click(self) -> None:
+        """A click the shell saw: on the desktop or the top bar, not on us."""
+        if self.window is None:
+            return
+        if should_close_on_click(
+            self.window.get_visible(),
+            self._shown_at,
+            self._internal_click_at,
+            time.time(),
+        ):
+            self.hide()
+
+    def _remember_internal_click(self, _widget, _event) -> bool:
+        """A press landed on this window, so click-away must not fire."""
+        self._internal_click_at = time.time()
         return False
