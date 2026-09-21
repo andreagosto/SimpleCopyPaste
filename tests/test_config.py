@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from simpleclips import config
-from simpleclips.config import Config
+from simplecopypaste import config
+from simplecopypaste.config import Config
 
 MB = 1024 * 1024
 

@@ -7,7 +7,7 @@ import struct
 
 from PIL import Image
 
-from simpleclips import images
+from simplecopypaste import images
 
 
 def png_bytes(width: int, height: int) -> bytes:

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from simpleclips import config, images
-from simpleclips.gtk_ui import GdkPixbuf
-from simpleclips.store import IMAGE, TEXT, Store
+from simplecopypaste import config, images
+from simplecopypaste.gtk_ui import GdkPixbuf
+from simplecopypaste.store import IMAGE, TEXT, Store
 
 
 def make_png(width: int = 64, height: int = 48, color: int = 0x2F6F4FFF) -> bytes:

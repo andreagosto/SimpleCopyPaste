@@ -71,9 +71,9 @@ def set_app_icon() -> None:
     """Use the bundled icon for our windows.
 
     Loaded from the package rather than the icon theme, so the settings
-    window and dialogs look right even before ``simpleclips install``.
+    window and dialogs look right even before ``simplecopypaste install``.
     """
-    path = os.path.join(os.path.dirname(__file__), "icons", "simpleclips.png")
+    path = os.path.join(os.path.dirname(__file__), "icons", "simplecopypaste.png")
     if not os.path.exists(path):
         return
     try:

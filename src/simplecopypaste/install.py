@@ -11,11 +11,16 @@ import sys
 from pathlib import Path
 
 from . import APP_NAME
+from . import hotkey
 
-SERVICE_NAME = "simpleclips.service"
-EXTENSION_UUID = "simpleclips@simpleclips.github.io"
+# The combo a fresh install binds, and the fallback when a stored one is
+# missing or unusable.
+DEFAULT_HOTKEY = "<Super><Alt>v"
+
+SERVICE_NAME = "simplecopypaste.service"
+EXTENSION_UUID = "simplecopypaste@simplecopypaste.github.io"
 KEYBINDING_PATH = (
-    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/simpleclips/"
+    "/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/simplecopypaste/"
 )
 KEYBINDING_SCHEMA = (
     "org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:" + KEYBINDING_PATH
@@ -46,14 +51,14 @@ def _service_dir() -> Path:
 
 
 def _exec_path() -> str:
-    found = shutil.which("simpleclips")
+    found = shutil.which("simplecopypaste")
     if found:
         return found
-    return f"{sys.executable} -m simpleclips"
+    return f"{sys.executable} -m simplecopypaste"
 
 
 def _on_path() -> bool:
-    return shutil.which("simpleclips") is not None
+    return shutil.which("simplecopypaste") is not None
 
 
 def _env_extra() -> str:
@@ -87,7 +92,18 @@ def _custom_keybindings() -> list[str]:
     return [str(v) for v in value] if isinstance(value, list) else []
 
 
-def install_keybinding(hotkey: str = "<Super><Alt>v") -> bool:
+def install_keybinding(accelerator: str = DEFAULT_HOTKEY) -> bool:
+    return set_keybinding(accelerator)
+
+
+def set_keybinding(accelerator: str) -> bool:
+    """Rebind the app's shortcut, keeping the entry registered.
+
+    Refuses anything that is not a real shortcut, so a bad value cannot leave
+    the app unreachable with no way to open it.
+    """
+    if not hotkey.is_valid(accelerator):
+        return False
     if not shutil.which("gsettings"):
         return False
     existing = _custom_keybindings()
@@ -96,8 +112,19 @@ def install_keybinding(hotkey: str = "<Super><Alt>v") -> bool:
         _gsettings_set(MEDIA_KEYS_SCHEMA, "custom-keybindings", repr(existing))
     _gsettings_set(KEYBINDING_SCHEMA, "name", APP_NAME)
     _gsettings_set(KEYBINDING_SCHEMA, "command", f"{_exec_path()} toggle")
-    _gsettings_set(KEYBINDING_SCHEMA, "binding", hotkey)
-    return True
+    return _gsettings_set(KEYBINDING_SCHEMA, "binding", accelerator)
+
+
+def current_keybinding() -> str:
+    """The shortcut currently bound to the app, as an accelerator.
+
+    Falls back to the default when nothing usable is stored, so the settings
+    always has something to show.
+    """
+    if not shutil.which("gsettings"):
+        return DEFAULT_HOTKEY
+    stored = _gsettings_get(KEYBINDING_SCHEMA, "binding").strip().strip("'")
+    return stored if hotkey.is_valid(stored) else DEFAULT_HOTKEY
 
 
 def remove_keybinding() -> bool:
@@ -162,7 +189,7 @@ def install_icons() -> bool:
     visible in the launcher. A symbolic (line-art) variant is installed too,
     under the name the top bar asks for.
     """
-    source = _icon_source() / "simpleclips.png"
+    source = _icon_source() / "simplecopypaste.png"
     if not source.exists():
         return False
     try:
@@ -173,7 +200,7 @@ def install_icons() -> bool:
 
     installed = False
     for size in ICON_SIZES:
-        target = _icons_dir() / f"{size}x{size}" / "apps" / "simpleclips.png"
+        target = _icons_dir() / f"{size}x{size}" / "apps" / "simplecopypaste.png"
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
@@ -200,7 +227,7 @@ def install_icons() -> bool:
 
     # An older build installed a scalable glyph under the plain name; it
     # would take priority at large sizes and shadow this artwork.
-    (_icons_dir() / "scalable" / "apps" / "simpleclips.svg").unlink(missing_ok=True)
+    (_icons_dir() / "scalable" / "apps" / "simplecopypaste.svg").unlink(missing_ok=True)
 
     if installed:
         _run(["gtk-update-icon-cache", "--force", "--ignore-theme-index", str(_icons_dir())])
@@ -211,14 +238,14 @@ def _extension_source() -> Path:
     return Path(__file__).resolve().parent / "gnome_extension"
 
 
-DESKTOP_NAME = "simpleclips.desktop"
+DESKTOP_NAME = "simplecopypaste.desktop"
 DESKTOP_TEMPLATE = """\
 [Desktop Entry]
 Type=Application
 Name={app}
 Comment=Clipboard history at your cursor
 Exec={exec_path} settings
-Icon=simpleclips
+Icon=simplecopypaste
 Terminal=false
 Categories=Utility;GTK;
 StartupNotify=true
@@ -264,13 +291,13 @@ def remove_desktop() -> None:
 #   * panel.png — a ready-coloured fallback bundled inside the extension, for
 #     when the theme copy is missing (the app running from a checkout).
 PANEL_ICON_SYMBOLIC = "panel-symbolic.svg"
-PANEL_ICON_NAME_SYMBOLIC = "simpleclips-symbolic"
+PANEL_ICON_NAME_SYMBOLIC = "simplecopypaste-symbolic"
 PANEL_ICON_SOURCE = "panel.png"
 PANEL_ICON_NAME = "panel.png"
 
 # Files shipped by earlier builds that no longer belong in the extension
 # folder. Removed on install so a stale copy cannot shadow the current one.
-OBSOLETE_EXTENSION_FILES = ["simpleclips.svg", "simpleclips.png"]
+OBSOLETE_EXTENSION_FILES = ["simplecopypaste.svg", "simplecopypaste.png"]
 
 
 def is_gnome_session() -> bool:
@@ -398,7 +425,7 @@ def extension_status() -> str:
 def install(hotkey: str = "<Super><Alt>v") -> int:
     if not _on_path():
         print(
-            "warning: 'simpleclips' is not on PATH; install it first, e.g.\n"
+            "warning: 'simplecopypaste' is not on PATH; install it first, e.g.\n"
             "    pipx install --system-site-packages .\n"
             "otherwise the service and shortcut may not find the command.",
             file=sys.stderr,
@@ -406,19 +433,19 @@ def install(hotkey: str = "<Super><Alt>v") -> int:
     service = install_service()
     print(f"systemd user service: {service}")
     if install_icons():
-        print(f"app icon: {_icons_dir() / '512x512' / 'apps' / 'simpleclips.png'}")
+        print(f"app icon: {_icons_dir() / '512x512' / 'apps' / 'simplecopypaste.png'}")
     print(f"launcher entry: {install_desktop()}")
     if install_keybinding(hotkey):
-        print(f"GNOME shortcut: {hotkey} -> simpleclips toggle")
+        print(f"GNOME shortcut: {hotkey} -> simplecopypaste toggle")
     else:
-        print("gsettings not found: bind a shortcut manually to 'simpleclips toggle'")
+        print("gsettings not found: bind a shortcut manually to 'simplecopypaste toggle'")
 
     notes: list[str] = []
     install_extension(notes)
     for note in notes:
         print(f"GNOME extension: {note}")
 
-    print("Done. Press the shortcut to open SimpleClips.")
+    print("Done. Press the shortcut to open SimpleCopyPaste.")
     return 0
 
 
@@ -427,5 +454,5 @@ def uninstall() -> int:
     remove_keybinding()
     remove_extension()
     remove_desktop()
-    print("SimpleClips removed from the desktop session.")
+    print("SimpleCopyPaste removed from the desktop session.")
     return 0

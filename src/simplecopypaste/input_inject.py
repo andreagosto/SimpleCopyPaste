@@ -2,7 +2,7 @@
 
 Priority order:
 
-1. **SimpleClips GNOME Shell extension** — works on GNOME Wayland with no
+1. **SimpleCopyPaste GNOME Shell extension** — works on GNOME Wayland with no
    extra dependency. It asks the compositor to press the combo.
 2. **ydotool** — the generic Wayland path, needs the tool installed and its
    daemon running (``/dev/uinput`` access).
@@ -62,8 +62,8 @@ def install_hint() -> str | None:
 
 def extension_hint() -> str:
     return (
-        "Enable the SimpleClips GNOME extension for automatic pasting "
-        "(run 'simpleclips install', then log out and back in)."
+        "Enable the SimpleCopyPaste GNOME extension for automatic pasting "
+        "(run 'simplecopypaste install', then log out and back in)."
     )
 
 

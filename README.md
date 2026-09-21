@@ -1,6 +1,6 @@
-# SimpleClips
+# SimpleCopyPaste
 
-<img src="docs/icon.png" width="110" alt="SimpleClips icon" align="right">
+<img src="docs/icon.png" width="110" alt="SimpleCopyPaste icon" align="right">
 
 A tiny **Win+V style clipboard history for Linux desktops**. Press a shortcut,
 a small panel opens *at your mouse pointer*, click an entry and it is pasted
@@ -9,7 +9,7 @@ where you were typing.
 No databases, no cloud, no 200-option settings window. Text **and images**,
 pinning, search — nothing more, nothing less.
 
-![SimpleClips popup](docs/screenshot.png)
+![SimpleCopyPaste popup](docs/screenshot.png)
 
 > Built to replace CopyQ on GNOME/Wayland: the basics did not work, and the
 > rest was more configuration than the job needed. See
@@ -43,12 +43,12 @@ pinning, search — nothing more, nothing less.
 
 ## How it works
 
-SimpleClips is one long-running user process (a daemon) plus a thin CLI:
+SimpleCopyPaste is one long-running user process (a daemon) plus a thin CLI:
 
 ```
 Desktop clipboard ──► daemon ──► JSON history + image blobs
                         │
-   shortcut ──► simpleclips toggle ──► popup at pointer
+   shortcut ──► simplecopypaste toggle ──► popup at pointer
 ```
 
 - The clipboard is watched with GTK's `owner-change` signal (XFixes) when an
@@ -84,8 +84,8 @@ sudo apt install ydotool        # optional: enables automatic Ctrl+V
 ### Top-bar icon, cursor placement and pasting on GNOME
 
 Wayland does not let an application read the global cursor position, synthesize
-a keystroke, or add a top-bar indicator. So `simpleclips install` also installs
-a small **GNOME Shell extension** (`simpleclips@simpleclips.github.io`) that
+a keystroke, or add a top-bar indicator. So `simplecopypaste install` also installs
+a small **GNOME Shell extension** (`simplecopypaste@simplecopypaste.github.io`) that
 provides all three:
 
 - an icon in the top bar — **left click opens the clipboard**, right click
@@ -104,7 +104,7 @@ The detailed illustration is used everywhere it has room — launcher, dash,
 window and notifications — as pre-scaled PNGs in the same theme.
 
 After installing, **log out and back in once** so GNOME Shell loads it
-(Wayland cannot reload the Shell in place). Check with `simpleclips doctor`:
+(Wayland cannot reload the Shell in place). Check with `simplecopypaste doctor`:
 `pointer source` should say `gnome-shell` and `paste backend` should say
 `gnome-shell`.
 
@@ -117,7 +117,7 @@ pointer and pasting needs `ydotool`.
 Two options:
 
 - **GNOME extension** (preferred, no extra software): installed by
-  `simpleclips install`.
+  `simplecopypaste install`.
 - **ydotool** — the generic Wayland path, for wlroots compositors:
 
   ```bash
@@ -125,7 +125,7 @@ Two options:
   sudo systemctl enable --now ydotool
   ```
 
-`simpleclips doctor` tells you which backend is active. If none is, SimpleClips
+`simplecopypaste doctor` tells you which backend is active. If none is, SimpleCopyPaste
 still copies the clip — you just press the paste shortcut yourself.
 
 **Terminals** do not use `Ctrl+V`. Set *Paste shortcut* to `Ctrl+Shift+V` in
@@ -140,33 +140,33 @@ pipx environment must be allowed to see system packages:
 
 ```bash
 pipx install --system-site-packages .
-# or once published:  pipx install --system-site-packages simpleclips
-simpleclips install       # systemd user service + Super+Alt+V shortcut
+# or once published:  pipx install --system-site-packages simplecopypaste
+simplecopypaste install       # systemd user service + Super+Alt+V shortcut
 ```
 
-`simpleclips install` does three things:
+`simplecopypaste install` does three things:
 
 1. writes and enables a **systemd user service** so the daemon starts with
    your session;
-2. binds **`Super+Alt+V`** to `simpleclips toggle` through GNOME's custom
+2. binds **`Super+Alt+V`** to `simplecopypaste toggle` through GNOME's custom
    shortcuts (via `gsettings`);
 3. installs the **GNOME Shell extension** and the **app icon**.
 
 Use a different shortcut with:
 
 ```bash
-simpleclips install --hotkey '<Super><Shift>v'
+simplecopypaste install --hotkey '<Super><Shift>v'
 ```
 
-To remove them: `simpleclips uninstall`.
+To remove them: `simplecopypaste uninstall`.
 
 > Running from a source checkout without installing? Start it manually with
-> `python3 -m simpleclips daemon` (with `PYTHONPATH=src`) and bind your own
-> shortcut to `simpleclips toggle`.
+> `python3 -m simplecopypaste daemon` (with `PYTHONPATH=src`) and bind your own
+> shortcut to `simplecopypaste toggle`.
 
 ## Usage
 
-Press **`Super+Alt+V`**, then:
+Press **`Super+Alt+V`** (changeable in Settings), then:
 
 | Key            | Action                          |
 | -------------- | ------------------------------- |
@@ -181,18 +181,18 @@ Press **`Super+Alt+V`**, then:
 ## CLI
 
 ```
-simpleclips daemon      run in the foreground (usually via systemd)
-simpleclips toggle      open/close the popup (bind this to a shortcut)
-simpleclips show|hide   open/close the popup
-simpleclips status      daemon status (backend, clip counts)
-simpleclips list        print stored clips
-simpleclips clear       drop unpinned history
-simpleclips stop        stop a running daemon
-simpleclips settings    open the settings window
-simpleclips pick [N]    copy the Nth clip to the clipboard
-simpleclips doctor      print environment diagnostics
-simpleclips install     install systemd service + GNOME shortcut
-simpleclips uninstall   remove them
+simplecopypaste daemon      run in the foreground (usually via systemd)
+simplecopypaste toggle      open/close the popup (bind this to a shortcut)
+simplecopypaste show|hide   open/close the popup
+simplecopypaste status      daemon status (backend, clip counts)
+simplecopypaste list        print stored clips
+simplecopypaste clear       drop unpinned history
+simplecopypaste stop        stop a running daemon
+simplecopypaste settings    open the settings window
+simplecopypaste pick [N]    copy the Nth clip to the clipboard
+simplecopypaste doctor      print environment diagnostics
+simplecopypaste install     install systemd service + GNOME shortcut
+simplecopypaste uninstall   remove them
 ```
 
 ## Settings
@@ -200,13 +200,17 @@ simpleclips uninstall   remove them
 Every option has a small settings window — no JSON editing required:
 
 ```bash
-simpleclips settings        # or click the gear in the popup footer
+simplecopypaste settings        # or click the gear in the popup footer
 ```
 
-![SimpleClips settings](docs/settings.png)
+![SimpleCopyPaste settings](docs/settings.png)
+
+At the top is the **shortcut that opens the clipboard** (`Super+Alt+V` by
+default). Click it and press new keys to change it — it is the one thing
+worth knowing about the app, so it is shown rather than buried in the docs.
 
 Changes are applied and saved immediately (no OK/Cancel). The same options
-are also available in `~/.config/simpleclips/config.json`, which stays plain
+are also available in `~/.config/simplecopypaste/config.json`, which stays plain
 JSON if you prefer editing it:
 
 ```json
@@ -232,9 +236,10 @@ JSON if you prefer editing it:
 - `persist_history` — `true` (default): unpinned clips survive a restart,
   up to `max_history`. `false`: they are cleared at every session start and
   only pinned clips persist.
-- `paste` — allow automatic pasting after you pick a clip.
-- `paste_shortcut` — `ctrl+v` (default), `ctrl+shift+v` (terminals) or
-  `shift+insert`.
+- `paste` — allow automatic pasting after you pick a clip. The key pressed is
+  `Ctrl+V`, the ordinary system paste.
+- `paste_shortcut` — advanced, JSON only. Set it to `ctrl+shift+v` if you
+  mostly paste into a terminal, which does not use `Ctrl+V`.
 - `images` — store image clips.
 - `image_files` — when you copy an image *file*, store the picture instead of
   its path (default on). Turn off if you want the path as text.
@@ -245,16 +250,16 @@ JSON if you prefer editing it:
   malformed or unusual file.
 - `popup_width` / `popup_max_height` — panel size in pixels.
 
-History lives in `~/.local/share/simpleclips/history.json`; image blobs in
-`~/.local/share/simpleclips/images/`. Delete either directory for a fresh
+History lives in `~/.local/share/simplecopypaste/history.json`; image blobs in
+`~/.local/share/simplecopypaste/images/`. Delete either directory for a fresh
 start.
 
 ## Running from source
 
 ```bash
 python3 -m pytest tests -q     # unit tests
-PYTHONPATH=src python3 -m simpleclips doctor
-PYTHONPATH=src python3 -m simpleclips daemon
+PYTHONPATH=src python3 -m simplecopypaste doctor
+PYTHONPATH=src python3 -m simplecopypaste daemon
 ```
 
 ## Stack

@@ -14,18 +14,18 @@ def _xdg(env: str, fallback: Path) -> Path:
 
 
 def config_dir() -> Path:
-    return _xdg("XDG_CONFIG_HOME", Path.home() / ".config") / "simpleclips"
+    return _xdg("XDG_CONFIG_HOME", Path.home() / ".config") / "simplecopypaste"
 
 
 def data_dir() -> Path:
-    return _xdg("XDG_DATA_HOME", Path.home() / ".local" / "share") / "simpleclips"
+    return _xdg("XDG_DATA_HOME", Path.home() / ".local" / "share") / "simplecopypaste"
 
 
 def runtime_dir() -> Path:
     base = os.environ.get("XDG_RUNTIME_DIR")
     if base:
         return Path(base)
-    return Path("/tmp") / f"simpleclips-{os.getuid()}"
+    return Path("/tmp") / f"simplecopypaste-{os.getuid()}"
 
 
 def config_file() -> Path:
@@ -41,11 +41,11 @@ def images_dir() -> Path:
 
 
 def socket_file() -> Path:
-    return runtime_dir() / "simpleclips.sock"
+    return runtime_dir() / "simplecopypaste.sock"
 
 
 def log_file() -> Path:
-    return data_dir() / "simpleclips.log"
+    return data_dir() / "simplecopypaste.log"
 
 
 @dataclass

@@ -16,11 +16,11 @@ HOTKEY_DEFAULT = "<Super><Alt>v"
 
 def _spawn_daemon() -> bool:
     """Start the daemon detached and wait for its socket."""
-    exe = shutil.which("simpleclips")
+    exe = shutil.which("simplecopypaste")
     argv = (
         [exe, "daemon"]
         if exe
-        else [sys.executable, "-m", "simpleclips", "daemon"]
+        else [sys.executable, "-m", "simplecopypaste", "daemon"]
     )
     try:
         subprocess.Popen(
@@ -50,7 +50,7 @@ def _send(cmd: str) -> int:
     try:
         reply = ipc.send({"cmd": cmd})
     except OSError as exc:
-        print(f"simpleclips is not running ({exc})", file=sys.stderr)
+        print(f"simplecopypaste is not running ({exc})", file=sys.stderr)
         return 1
     if not reply.get("ok"):
         print(f"error: {reply.get('error', 'unknown')}", file=sys.stderr)
@@ -60,7 +60,7 @@ def _send(cmd: str) -> int:
 
 def cmd_toggle(_args) -> int:
     if not _ensure_daemon():
-        print("could not reach or start the simpleclips daemon", file=sys.stderr)
+        print("could not reach or start the simplecopypaste daemon", file=sys.stderr)
         return 1
     return _send("toggle")
 
@@ -77,7 +77,7 @@ def cmd_hide(_args) -> int:
 
 def cmd_status(_args) -> int:
     if not ipc.is_alive():
-        print("simpleclips: not running")
+        print("simplecopypaste: not running")
         return 1
     reply = ipc.send({"cmd": "status"})
     print(f"clipboard backend : {reply.get('clipboard')}")
@@ -98,14 +98,14 @@ def cmd_clear(_args) -> int:
 
 def cmd_stop(_args) -> int:
     if not ipc.is_alive():
-        print("simpleclips: not running")
+        print("simplecopypaste: not running")
         return 0
     return _send("quit")
 
 
 def cmd_settings(_args) -> int:
     if not _ensure_daemon():
-        print("could not reach or start the simpleclips daemon", file=sys.stderr)
+        print("could not reach or start the simplecopypaste daemon", file=sys.stderr)
         return 1
     return _send("settings")
 
@@ -113,12 +113,12 @@ def cmd_settings(_args) -> int:
 def cmd_pick(args) -> int:
     """Copy the Nth clip (1-based) straight to the clipboard."""
     if not _ensure_daemon():
-        print("could not reach or start the simpleclips daemon", file=sys.stderr)
+        print("could not reach or start the simplecopypaste daemon", file=sys.stderr)
         return 1
     try:
         reply = ipc.send({"cmd": "pick", "index": args.index})
     except OSError as exc:
-        print(f"simpleclips is not running ({exc})", file=sys.stderr)
+        print(f"simplecopypaste is not running ({exc})", file=sys.stderr)
         return 1
     if not reply.get("ok"):
         print(f"error: {reply.get('error', 'unknown')}", file=sys.stderr)
@@ -170,7 +170,7 @@ def cmd_doctor(_args) -> int:
     from .clipboard import Clipboard
     from .pointer import Pointer
 
-    print(f"simpleclips       : {__version__}")
+    print(f"simplecopypaste       : {__version__}")
     print(f"python            : {sys.version.split()[0]}")
     print(f"session type      : {os.environ.get('XDG_SESSION_TYPE', '?')}")
     print(f"desktop           : {os.environ.get('XDG_CURRENT_DESKTOP', '?')}")
@@ -219,10 +219,10 @@ def cmd_daemon(_args) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="simpleclips",
+        prog="simplecopypaste",
         description="A tiny Win+V style clipboard history for Linux desktops.",
     )
-    parser.add_argument("--version", action="version", version=f"simpleclips {__version__}")
+    parser.add_argument("--version", action="version", version=f"simplecopypaste {__version__}")
     sub = parser.add_subparsers(dest="command")
 
     sub.add_parser("daemon", help="run in the foreground (usually via systemd)")

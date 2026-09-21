@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from simpleclips.popup import compute_position
+from simplecopypaste.popup import compute_position
 
 # A 2560x1440 monitor with a 56px panel, and a typical 560x475 popup.
 AREA = (0, 0, 2560, 1384)

@@ -1,4 +1,4 @@
-// SimpleClips Shell - the GNOME companion for the SimpleClips clipboard tool.
+// SimpleCopyPaste Shell - the GNOME companion for the SimpleCopyPaste clipboard tool.
 //
 // GNOME Wayland does not let applications read the global pointer position,
 // synthesize keystrokes, or add a top-bar icon, so this extension provides
@@ -24,7 +24,7 @@ import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const IFACE = `
 <node>
-  <interface name="org.simpleclips.Shell">
+  <interface name="org.simplecopypaste.Shell">
     <method name="GetPointer">
       <arg type="i" direction="out" name="x"/>
       <arg type="i" direction="out" name="y"/>
@@ -45,8 +45,8 @@ const IFACE = `
   </interface>
 </node>`;
 
-const OBJECT_PATH = '/org/simpleclips/Shell';
-const CLI = 'simpleclips';
+const OBJECT_PATH = '/org/simplecopypaste/Shell';
+const CLI = 'simplecopypaste';
 
 const MODIFIERS = {
     ctrl: 'KEY_Control_L',
@@ -74,7 +74,7 @@ const ICON_OPACITY = 0.82;
 // any handler attached with connect(). Intercepting the primary button in a
 // subclass is the only way to keep the menu closed on a left click.
 const Indicator = GObject.registerClass(
-class SimpleClipsIndicator extends PanelMenu.Button {
+class SimpleCopyPasteIndicator extends PanelMenu.Button {
     _init(nameText, onPrimary) {
         super._init(0.5, nameText, false);
         this._onPrimary = onPrimary;
@@ -90,7 +90,7 @@ class SimpleClipsIndicator extends PanelMenu.Button {
     }
 });
 
-export default class SimpleClipsShellExtension extends Extension {
+export default class SimpleCopyPasteShellExtension extends Extension {
     enable() {
         this._device = null;
         this._clickWatch = false;
@@ -159,25 +159,25 @@ export default class SimpleClipsShellExtension extends Extension {
         // to read.
         let gicon;
         if (this._symbolicInstalled()) {
-            gicon = Gio.icon_new_for_string('simpleclips-symbolic');
+            gicon = Gio.icon_new_for_string('simplecopypaste-symbolic');
         } else {
             // Fallback: a ready-coloured PNG shipped inside the extension.
             const bundled = this.dir.get_child('panel.png');
             if (bundled.query_exists(null))
                 gicon = Gio.icon_new_for_string(bundled.get_path());
             else
-                gicon = Gio.icon_new_for_string('simpleclips');
+                gicon = Gio.icon_new_for_string('simplecopypaste');
         }
         const icon = new St.Icon({
             gicon,
-            style_class: 'system-status-icon simpleclips-panel-icon',
+            style_class: 'system-status-icon simplecopypaste-panel-icon',
         });
         icon.opacity = Math.round(ICON_OPACITY * 255);
         return icon;
     }
 
     _symbolicInstalled() {
-        const name = 'simpleclips-symbolic.svg';
+        const name = 'simplecopypaste-symbolic.svg';
         const dirs = GLib.get_system_data_dirs().concat([GLib.get_user_data_dir()]);
         return dirs.some((dir) => {
             const path = GLib.build_filenamev(
@@ -196,7 +196,7 @@ export default class SimpleClipsShellExtension extends Extension {
                 null
             );
         } catch (error) {
-            logError(error, `SimpleClips: could not run '${CLI} ${command}'`);
+            logError(error, `SimpleCopyPaste: could not run '${CLI} ${command}'`);
         }
     }
 
@@ -257,7 +257,7 @@ export default class SimpleClipsShellExtension extends Extension {
                 this._device.notify_keyval(time, sym, Clutter.KeyState.RELEASED);
             return true;
         } catch (error) {
-            logError(error, 'SimpleClips: could not synthesize the paste shortcut');
+            logError(error, 'SimpleCopyPaste: could not synthesize the paste shortcut');
             this._device = null;
             return false;
         }

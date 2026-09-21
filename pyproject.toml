@@ -3,13 +3,13 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "simpleclips"
+name = "simplecopypaste"
 version = "0.1.0"
 description = "A tiny Win+V style clipboard history for Linux desktops (GNOME/Wayland friendly)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-authors = [{ name = "simpleclips contributors" }]
+authors = [{ name = "simplecopypaste contributors" }]
 keywords = ["clipboard", "clipboard-manager", "gnome", "wayland", "gtk", "productivity"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -27,17 +27,17 @@ dependencies = []
 dev = ["build", "twine"]
 
 [project.scripts]
-simpleclips = "simpleclips.cli:main"
+simplecopypaste = "simplecopypaste.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/andreagosto/simpleclips"
-Issues = "https://github.com/andreagosto/simpleclips/issues"
+Homepage = "https://github.com/andreagosto/SimpleCopyPaste"
+Issues = "https://github.com/andreagosto/SimpleCopyPaste/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-simpleclips = [
+simplecopypaste = [
     "style.css",
     "gnome_extension/*.js",
     "gnome_extension/*.json",

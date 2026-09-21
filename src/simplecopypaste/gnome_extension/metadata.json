@@ -1,0 +1,8 @@
+{
+  "uuid": "simplecopypaste@simplecopypaste.github.io",
+  "name": "SimpleCopyPaste Shell",
+  "description": "Companion for SimpleCopyPaste: a top-bar icon, the global pointer position, and the paste shortcut. Lets the clipboard popup open at the cursor and paste on GNOME Wayland.",
+  "shell-version": ["45", "46", "47"],
+  "version": 10,
+  "url": "https://github.com/andreagosto/SimpleCopyPaste"
+}

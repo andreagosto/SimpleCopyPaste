@@ -7,8 +7,8 @@ can still be checked.
 
 from __future__ import annotations
 
-from simpleclips.gtk_ui import FOCUS_OUT_GRACE, should_autohide
-from simpleclips.popup import REOPEN_GUARD, within_reopen_guard
+from simplecopypaste.gtk_ui import FOCUS_OUT_GRACE, should_autohide
+from simplecopypaste.popup import REOPEN_GUARD, within_reopen_guard
 
 
 # --------------------------------------------------------------- autohide

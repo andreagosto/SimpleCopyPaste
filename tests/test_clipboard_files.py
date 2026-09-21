@@ -6,12 +6,12 @@ import io
 
 from PIL import Image
 
-from simpleclips.clipboard import (
+from simplecopypaste.clipboard import (
     IMAGE_MIMES,
     parse_uri_list,
     _file_uri_to_path,
 )
-from simpleclips import clipboard as clipboard_mod
+from simplecopypaste import clipboard as clipboard_mod
 
 
 def test_parse_uri_list_plain():

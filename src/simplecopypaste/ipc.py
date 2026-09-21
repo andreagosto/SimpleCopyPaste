@@ -88,7 +88,7 @@ class Server:
         except OSError:
             self._lock_file.close()
             self._lock_file = None
-            raise CommandError("another simpleclips daemon is already running")
+            raise CommandError("another simplecopypaste daemon is already running")
 
     def _serve(self) -> None:
         assert self._sock is not None

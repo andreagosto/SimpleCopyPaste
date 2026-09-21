@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from simpleclips.gtk_ui import Gdk, Gtk
+from simplecopypaste.gtk_ui import Gdk, Gtk
 
 
 class FakeSpin(Gtk.SpinButton):
@@ -37,7 +37,7 @@ def make_settings():
         def apply_config(self):
             pass
 
-    from simpleclips.settings import SettingsWindow
+    from simplecopypaste.settings import SettingsWindow
 
     return SettingsWindow(App())
 
@@ -80,24 +80,42 @@ class FakeCombo:
 
 
 def test_open_dropdown_counts_as_a_popup():
-    from simpleclips.gtk_ui import any_popup_open
+    from simplecopypaste.gtk_ui import any_popup_open
 
     assert any_popup_open([FakeCombo(False), FakeCombo(True)]) is True
 
 
 def test_no_popup_when_every_dropdown_is_closed():
-    from simpleclips.gtk_ui import any_popup_open
+    from simplecopypaste.gtk_ui import any_popup_open
 
     assert any_popup_open([FakeCombo(False), FakeCombo(False)]) is False
 
 
 def test_no_popup_with_no_combos():
-    from simpleclips.gtk_ui import any_popup_open
+    from simplecopypaste.gtk_ui import any_popup_open
 
     assert any_popup_open([]) is False
 
 
-def test_settings_registers_its_dropdowns():
+def test_settings_does_not_close_while_a_dropdown_is_open():
+    # A dropdown lives in its own toplevel, so opening it moves focus away.
+    # The close-on-focus-loss path must stand down while one is open.
     window = make_settings()
-    assert window._choice_boxes, "the shortcut dropdown must be tracked"
-    assert any(hasattr(c, "get_property") for c in window._choice_boxes)
+    window._choice_boxes.append(FakeCombo(True))
+    window.window.show_all()
+    try:
+        window._close_if_focus_left()
+        assert window.window.get_visible(), "closed with a dropdown open"
+    finally:
+        window.window.destroy()
+
+
+def test_settings_closes_when_no_dropdown_is_open():
+    window = make_settings()
+    window._choice_boxes.append(FakeCombo(False))
+    window.window.show_all()
+    try:
+        window._close_if_focus_left()
+        assert not window.window.get_visible(), "should have closed"
+    finally:
+        window.window.destroy()

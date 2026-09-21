@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from simpleclips import pointer
-from simpleclips.pointer import Pointer
+from simplecopypaste import pointer
+from simplecopypaste.pointer import Pointer
 
 
 def test_prefers_gnome_shell_when_available(monkeypatch):

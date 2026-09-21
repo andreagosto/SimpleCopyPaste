@@ -1,4 +1,4 @@
-"""Client for the SimpleClips GNOME Shell companion extension.
+"""Client for the SimpleCopyPaste GNOME Shell companion extension.
 
 The extension exposes, over the session bus:
 
@@ -10,8 +10,8 @@ Using the extension means no ydotool, no ``/dev/uinput`` permissions and no
 extra daemon. When it is not installed we fall back to whatever the session
 offers (X11 pointer, ydotool/xdotool for pasting).
 
-Two address are probed: the current ``org.simpleclips.Shell`` object and the
-earlier ``org.simpleclips.Pointer`` one. GNOME loads extension code only at
+Two address are probed: the current ``org.simplecopypaste.Shell`` object and the
+earlier ``org.simplecopypaste.Pointer`` one. GNOME loads extension code only at
 login, so an updated extension keeps answering on the old object until the
 user logs out; supporting both avoids breaking anything in between.
 """
@@ -28,8 +28,8 @@ RETRY_AFTER = 15.0
 
 # (object path, interface) — newest first.
 ENDPOINTS = [
-    ("/org/simpleclips/Shell", "org.simpleclips.Shell"),
-    ("/org/simpleclips/Pointer", "org.simpleclips.Pointer"),  # legacy
+    ("/org/simplecopypaste/Shell", "org.simplecopypaste.Shell"),
+    ("/org/simplecopypaste/Pointer", "org.simplecopypaste.Pointer"),  # legacy
 ]
 
 
@@ -135,7 +135,7 @@ class ShellExtension:
             return False
         if self._endpoint is None:
             return False
-        return self._endpoint[1] == "org.simpleclips.Shell"
+        return self._endpoint[1] == "org.simplecopypaste.Shell"
 
     # ------------------------------------------------------- click watching
 
@@ -144,7 +144,7 @@ class ShellExtension:
         if not self.available():
             return False
         endpoint = self._endpoint
-        if endpoint is None or endpoint[1] != "org.simpleclips.Shell":
+        if endpoint is None or endpoint[1] != "org.simplecopypaste.Shell":
             return False
         try:
             result = self._call("SetClickWatch", GLib.Variant("(b)", (bool(on),)))
@@ -164,7 +164,7 @@ class ShellExtension:
         if not self.available():
             return False
         endpoint = self._endpoint
-        if endpoint is None or endpoint[1] != "org.simpleclips.Shell":
+        if endpoint is None or endpoint[1] != "org.simplecopypaste.Shell":
             return False
         if self._signal_id is not None:
             return True

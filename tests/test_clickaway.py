@@ -6,7 +6,7 @@ numbers in.
 
 from __future__ import annotations
 
-from simpleclips.clickaway import (
+from simplecopypaste.clickaway import (
     CLICK_GRACE,
     INTERNAL_CLICK_WINDOW,
     should_close_on_click,

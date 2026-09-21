@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from simpleclips.popup import TOOLTIP_CHARS, TOOLTIP_WIDTH, _tooltip_for, _wrap_for_tooltip
-from simpleclips.store import IMAGE, TEXT, Clip
+from simplecopypaste.popup import TOOLTIP_CHARS, TOOLTIP_WIDTH, _tooltip_for, _wrap_for_tooltip
+from simplecopypaste.store import IMAGE, TEXT, Clip
 
 
 def test_text_tooltip_keeps_line_breaks():

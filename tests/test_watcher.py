@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from simpleclips.clipboard import Clipboard, Watcher
-from simpleclips.daemon import _payload_signature
+from simplecopypaste.clipboard import Clipboard, Watcher
+from simplecopypaste.daemon import _payload_signature
 
 
 def test_text_signature_is_the_text():

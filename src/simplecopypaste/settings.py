@@ -15,16 +15,11 @@ from .gtk_ui import (
     should_autohide,
 )
 from .clickaway import ClickAway, should_close_on_click
+from . import hotkey
 from . import input_inject
+from . import install as desktop
 
 MP = 1_000_000
-
-# Combos the GNOME extension and the tool backends all understand.
-PASTE_SHORTCUTS = [
-    ("ctrl+v", "Ctrl+V"),
-    ("ctrl+shift+v", "Ctrl+Shift+V"),
-    ("shift+insert", "Shift+Insert"),
-]
 
 # Keeps settings hints from widening the window: they wrap within this box.
 HINT_WIDTH = 300
@@ -44,6 +39,7 @@ class SettingsWindow:
         self._loading = False
         self._shown_at = 0.0
         self._internal_click_at = 0.0
+        self._capturing = False
         self._choice_boxes: list[Gtk.ComboBoxText] = []
         self.click_away = ClickAway(self._on_global_click)
         self._build()
@@ -53,7 +49,7 @@ class SettingsWindow:
     def _build(self) -> None:
         set_app_icon()
         self.window = Gtk.Window(type=Gtk.WindowType.TOPLEVEL)
-        self.window.set_title("SimpleClips Settings")
+        self.window.set_title("SimpleCopyPaste Settings")
         self.window.set_resizable(False)
         # A dialog, not an app window: it closes on click-away, so a minimise
         # button would only be a control that does nothing. Declaring it as
@@ -81,6 +77,11 @@ class SettingsWindow:
 
         config = self.app.config
         self._loading = True
+
+        # First thing on the page: the shortcut is the whole point of the app,
+        # and without showing it here nobody would ever find it.
+        self._section("Shortcut")
+        self.hotkey_button = self._row_hotkey()
 
         self._section("History")
         self.max_items = self._row_int(
@@ -124,18 +125,11 @@ class SettingsWindow:
         )
         self.paste = self._row_bool(
             "Paste automatically",
-            "Press the paste shortcut for you after choosing a clip.",
+            "After you choose a clip, press Ctrl+V for you.",
             config.paste,
             lambda v: setattr(config, "paste", v),
         )
         self.paste_row = self.paste.get_parent()
-        self.paste_shortcut = self._row_choice(
-            "Paste shortcut",
-            "Terminals need Ctrl+Shift+V; most other apps use Ctrl+V.",
-            PASTE_SHORTCUTS,
-            config.paste_shortcut,
-            lambda value: setattr(config, "paste_shortcut", value),
-        )
         self.show_paste_hint = self._row_bool(
             "Show auto-paste hint",
             "Discreet tip when automatic pasting is unavailable.",
@@ -271,6 +265,56 @@ class SettingsWindow:
         """Swallow wheel events on number fields unless they are focused."""
         return not widget.has_focus()
 
+    def _row_hotkey(self) -> Gtk.Button:
+        """The global shortcut, shown and editable.
+
+        Clicking turns the button into a recorder for the next key press. The
+        shortcut is the whole point of the app, so it is shown here rather
+        than left for the reader to discover in the documentation.
+        """
+        button = Gtk.Button()
+        button.get_style_context().add_class("sc-hotkey")
+        button.set_tooltip_text("Click, then press the keys you want")
+        button.connect("clicked", lambda _b: self._begin_capture())
+        row = self._row("Open the clipboard", self._hotkey_hint(), button)
+        self._hotkey_row = row
+        return button
+
+    def _hotkey_hint(self) -> str:
+        return "Opens the panel at the cursor. Click the button and press new keys to change it."
+
+    def _begin_capture(self) -> None:
+        self._capturing = True
+        self.hotkey_button.set_label("Press keys\u2026")
+        hint = self._hotkey_row.hint_label
+        if hint is not None:
+            hint.set_text("Press a combination, for example Super+Alt+V. Esc cancels.")
+
+    def _end_capture(self, message: str | None = None) -> None:
+        self._capturing = False
+        current = desktop.current_keybinding()
+        self.hotkey_button.set_label(hotkey.pretty(current))
+        hint = self._hotkey_row.hint_label
+        if hint is not None:
+            hint.set_text(message or self._hotkey_hint())
+
+    def _capture_hotkey(self, event) -> bool:
+        """Consume a key press while recording the shortcut."""
+        if event.keyval == Gdk.KEY_Escape:
+            self._end_capture("Cancelled.")
+            return True
+        accelerator = hotkey.from_event(event.keyval, event.state)
+        if accelerator is None:
+            hint = self._hotkey_row.hint_label
+            if hint is not None:
+                hint.set_text("Add a modifier too: Super, Ctrl, Shift or Alt.")
+            return True
+        if desktop.set_keybinding(accelerator):
+            self._end_capture(f"Set to {hotkey.pretty(accelerator)}.")
+        else:
+            self._end_capture("Could not change it: gsettings is unavailable.")
+        return True
+
     def _row_bool(self, title: str, hint: str, value: bool, apply) -> Gtk.Switch:
         switch = Gtk.Switch()
         switch.set_active(value)
@@ -402,11 +446,11 @@ class SettingsWindow:
         self.image_files.set_active(config.image_files)
         self.max_image_pixels.set_value(config.max_image_pixels // MP)
         self.paste.set_active(config.paste)
-        self._row_choice_set(self.paste_shortcut, config.paste_shortcut)
         self.show_paste_hint.set_active(config.show_paste_hint)
         self.popup_width.set_value(config.popup_width)
         self.popup_max_height.set_value(config.popup_max_height)
         self._loading = False
+        self._end_capture()  # show the current global shortcut
         self._refresh_paste_availability()
         self._refresh_images_availability()
 
@@ -422,8 +466,7 @@ class SettingsWindow:
 
     def _refresh_paste_availability(self) -> None:
         """Reflect whether automatic pasting can work right now."""
-        combo = self.app.config.paste_shortcut
-        backend = input_inject.detect(combo)
+        backend = input_inject.detect(self.app.config.paste_shortcut)
         available = backend != "none"
         self.paste.set_sensitive(True)  # the preference itself is always settable
         self.show_paste_hint.set_sensitive(available)
@@ -440,6 +483,10 @@ class SettingsWindow:
             hint.set_text(f"Unavailable: no input backend found.{detail}")
 
     def _on_key(self, _widget, event) -> bool:
+        # While recording the shortcut every key belongs to the recorder,
+        # including Esc.
+        if self._capturing:
+            return self._capture_hotkey(event)
         if event.keyval == Gdk.KEY_Escape:
             self.hide()
             return True

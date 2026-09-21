@@ -1,4 +1,4 @@
-/* SimpleClips popup - same visual language as the settings window:
+/* SimpleCopyPaste popup - same visual language as the settings window:
    white sheet, consistent 18px gutters, quiet rows, orange accents. */
 
 .sc-popup {
@@ -183,6 +183,25 @@
 .sc-settings-unit {
     color: #8f8678;
     font-size: 13px;
+}
+
+/* The shortcut: looks like the keys it stands for, so it reads as something
+   to click rather than plain text. */
+.sc-hotkey {
+    background-image: none;
+    background-color: #f2f1ee;
+    color: #1f1b15;
+    border: 1px solid rgba(60, 42, 20, 0.22);
+    border-radius: 7px;
+    padding: 5px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: none;
+}
+
+.sc-hotkey:hover {
+    background-color: #eceae4;
+    border-color: #b06a3b;
 }
 
 .sc-settings-status {

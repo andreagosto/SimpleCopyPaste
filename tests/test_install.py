@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import json
 
-from simpleclips import install
+from simplecopypaste import install
 
 
 def test_bundled_icons_exist():
     source = install._icon_source()
-    assert (source / "simpleclips.png").exists()               # artwork, app icon
+    assert (source / "simplecopypaste.png").exists()               # artwork, app icon
     assert (source / install.PANEL_ICON_SOURCE).exists()        # panel fallback
     assert (source / install.PANEL_ICON_SYMBOLIC).exists()      # panel symbolic
 
 
 def test_panel_symbolic_name_carries_the_suffix():
-    # GTK resolves "simpleclips-symbolic" by looking for a file of that name,
+    # GTK resolves "simplecopypaste-symbolic" by looking for a file of that name,
     # so the suffix has to be part of it.
     assert install.PANEL_ICON_NAME_SYMBOLIC.endswith("-symbolic")
 
@@ -48,7 +48,7 @@ def test_install_icons_writes_every_size(tmp_path, monkeypatch):
     monkeypatch.setattr(install, "_icons_dir", lambda: tmp_path / "hicolor")
     assert install.install_icons() is True
     for size in install.ICON_SIZES:
-        path = tmp_path / "hicolor" / f"{size}x{size}" / "apps" / "simpleclips.png"
+        path = tmp_path / "hicolor" / f"{size}x{size}" / "apps" / "simplecopypaste.png"
         assert path.exists(), f"missing {size}px icon"
 
 
@@ -66,8 +66,8 @@ def test_install_desktop_points_at_the_settings(tmp_path, monkeypatch):
     monkeypatch.setattr(install, "_applications_dir", lambda: tmp_path / "applications")
     path = install.install_desktop()
     text = path.read_text(encoding="utf-8")
-    assert "Name=SimpleClips" in text
-    assert "Icon=simpleclips" in text
+    assert "Name=SimpleCopyPaste" in text
+    assert "Icon=simplecopypaste" in text
     # GNOME pairs the running window with this entry through the WM class
     assert "StartupWMClass=Simpleclips" in text
     exec_line = next(l for l in text.splitlines() if l.startswith("Exec="))

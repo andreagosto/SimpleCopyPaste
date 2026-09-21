@@ -18,7 +18,7 @@ from .popup import Popup
 from .settings import SettingsWindow
 from .store import IMAGE, Clip, Store
 
-log = logging.getLogger("simpleclips")
+log = logging.getLogger("simplecopypaste")
 
 
 def _size(num_bytes: int) -> str:
@@ -45,10 +45,10 @@ def _payload_signature(payload: dict) -> str | None:
 
 
 def _notify_argv() -> list[str]:
-    script = shutil.which("simpleclips")
+    script = shutil.which("simplecopypaste")
     if script:
         return [script, "_notify"]
-    return [sys.executable, "-m", "simpleclips", "_notify"]
+    return [sys.executable, "-m", "simplecopypaste", "_notify"]
 
 
 class Daemon:
@@ -154,7 +154,7 @@ class Daemon:
         if not config.images:
             self._warn(
                 "Image not saved",
-                "Storing images is turned off in SimpleClips settings.",
+                "Storing images is turned off in SimpleCopyPaste settings.",
                 refresh_popup,
             )
             return None
@@ -185,7 +185,7 @@ class Daemon:
                 "Image too large, not saved",
                 f"This image is {width}\u00d7{height} ({_mp(pixels)}), above "
                 f"the {_mp(config.max_image_pixels)} limit. Raise "
-                "'Max image size' in SimpleClips settings to keep it.",
+                "'Max image size' in SimpleCopyPaste settings to keep it.",
                 refresh_popup,
             )
             return None
@@ -248,7 +248,7 @@ class Daemon:
     def _handle(self, request: dict) -> dict:
         cmd = request.get("cmd", "")
         if cmd == "ping":
-            return {"ok": True, "app": "simpleclips"}
+            return {"ok": True, "app": "simplecopypaste"}
         if cmd == "status":
             return {
                 "ok": True,
@@ -308,7 +308,7 @@ class Daemon:
         return False
 
     def _pick(self, index) -> dict:
-        """Copy the Nth clip (1-based, as shown by ``simpleclips list``)."""
+        """Copy the Nth clip (1-based, as shown by ``simplecopypaste list``)."""
         try:
             position = int(index)
         except (TypeError, ValueError):

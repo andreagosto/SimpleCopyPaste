@@ -16,7 +16,7 @@ def send(title: str, body: str, icon: str = "edit-paste-symbolic") -> bool:
         return False
     try:
         subprocess.Popen(
-            ["notify-send", "--app-name=SimpleClips", f"--icon={icon}", title, body],
+            ["notify-send", "--app-name=SimpleCopyPaste", f"--icon={icon}", title, body],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             start_new_session=True,

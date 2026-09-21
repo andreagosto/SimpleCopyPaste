@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from simpleclips.popup import _tooltip_for
-from simpleclips.store import IMAGE, Store
+from simplecopypaste.popup import _tooltip_for
+from simplecopypaste.store import IMAGE, Store
 
 from test_store import make_png
 

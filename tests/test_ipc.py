@@ -7,7 +7,7 @@ import time
 
 import pytest
 
-from simpleclips import config, ipc
+from simplecopypaste import config, ipc
 
 
 def test_send_and_receive():
