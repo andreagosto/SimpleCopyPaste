@@ -81,6 +81,47 @@ def test_remove_desktop(tmp_path, monkeypatch):
     assert not (tmp_path / "applications" / install.DESKTOP_NAME).exists()
 
 
+def test_extension_install_is_non_destructive(tmp_path, monkeypatch):
+    """Installing must not wipe the extension folder.
+
+    While the extension is running the Shell keeps a handle on that directory;
+    deleting it leaves the extension disabled and unable to reload, because
+    Wayland cannot reload the Shell in place.
+    """
+    ext_dir = tmp_path / "extensions"
+    monkeypatch.setattr(install, "_extensions_dir", lambda: ext_dir)
+    monkeypatch.setattr(install, "is_gnome_session", lambda: True)
+    monkeypatch.setattr(install, "_gnome_extensions_cli", lambda: None)
+    monkeypatch.setattr(install.shutil, "which", lambda name: None)
+
+    target = ext_dir / install.EXTENSION_UUID
+    target.mkdir(parents=True)
+    (target / "marker").write_text("keep me", encoding="utf-8")
+
+    notes = []
+    install.install_extension(notes)
+    assert (target / "marker").exists(), "install wiped the folder"
+    assert (target / "extension.js").exists()
+    assert (target / install.PANEL_ICON_NAME).exists()
+
+
+def test_obsolete_extension_files_are_removed(tmp_path, monkeypatch):
+    ext_dir = tmp_path / "extensions"
+    monkeypatch.setattr(install, "_extensions_dir", lambda: ext_dir)
+    monkeypatch.setattr(install, "is_gnome_session", lambda: True)
+    monkeypatch.setattr(install, "_gnome_extensions_cli", lambda: None)
+    monkeypatch.setattr(install.shutil, "which", lambda name: None)
+
+    target = ext_dir / install.EXTENSION_UUID
+    target.mkdir(parents=True)
+    for stale in install.OBSOLETE_EXTENSION_FILES:
+        (target / stale).write_text("old", encoding="utf-8")
+
+    install.install_extension([])
+    for stale in install.OBSOLETE_EXTENSION_FILES:
+        assert not (target / stale).exists()
+
+
 def test_extension_metadata_is_valid_and_current():
     metadata = json.loads(
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")

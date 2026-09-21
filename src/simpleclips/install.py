@@ -268,6 +268,10 @@ PANEL_ICON_NAME_SYMBOLIC = "simpleclips-symbolic"
 PANEL_ICON_SOURCE = "panel.png"
 PANEL_ICON_NAME = "panel.png"
 
+# Files shipped by earlier builds that no longer belong in the extension
+# folder. Removed on install so a stale copy cannot shadow the current one.
+OBSOLETE_EXTENSION_FILES = ["simpleclips.svg", "simpleclips.png"]
+
 
 def is_gnome_session() -> bool:
     desktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
@@ -326,21 +330,36 @@ def install_extension(hotkey_note: list[str]) -> None:
     source = _extension_source()
     target = _extensions_dir() / EXTENSION_UUID
     try:
-        if target.exists():
-            shutil.rmtree(target)
-        shutil.copytree(source, target)
+        # Copy over the existing files; never remove the directory first.
+        # While the extension is running, the Shell keeps a handle on it, and
+        # deleting the folder out from under it leaves the extension disabled
+        # and unable to reload (Wayland cannot reload the Shell).
+        target.mkdir(parents=True, exist_ok=True)
+        for item in sorted(source.iterdir()):
+            if item.is_file():
+                shutil.copyfile(item, target / item.name)
         _copy_icon_into(target)
+        for stale in OBSOLETE_EXTENSION_FILES:
+            (target / stale).unlink(missing_ok=True)
     except OSError as exc:
         print(f"  could not install the GNOME extension: {exc}", file=sys.stderr)
         return
 
-    # Register it as enabled directly, so it is active after the next login
-    # even though the running Shell has not scanned the new directory yet.
+    # Register it as enabled in gsettings, so it stays enabled across logins.
     if shutil.which("gsettings"):
         uuids = _enabled_extensions()
         if EXTENSION_UUID not in uuids:
             _set_enabled_extensions(uuids + [EXTENSION_UUID])
 
+    state = _extension_enabled_state()
+    if state in ("ENABLED", "ACTIVE"):
+        hotkey_note.append(
+            "already active. To pick up changes to its code, log out and "
+            "back in (Wayland cannot reload the Shell in place)."
+        )
+        return
+
+    # Only poke the Shell when it is not already running the extension.
     cli = _gnome_extensions_cli()
     if cli is not None:
         _run([cli, "enable", EXTENSION_UUID])
