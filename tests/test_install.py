@@ -1,35 +1,49 @@
-"""Desktop integration: icons and the GNOME extension payload."""
+"""Desktop integration: icons, launcher entry and the extension payload."""
 
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from simpleclips import install
 
 
-def test_extension_extras_cover_both_icon_formats():
-    assert "simpleclips.svg" in install.EXTENSION_EXTRAS
-    assert "simpleclips.png" in install.EXTENSION_EXTRAS
-
-
 def test_bundled_icons_exist():
     source = install._icon_source()
-    for name in install.EXTENSION_EXTRAS:
-        assert (source / name).exists(), f"missing bundled icon {name}"
+    assert (source / "simpleclips.png").exists()      # artwork, app icon
+    assert (source / install.PANEL_ICON_SOURCE).exists()  # glyph, panel icon
 
 
-def test_copy_icon_into_extension(tmp_path):
+def test_copy_panel_icon_into_extension(tmp_path):
     install._copy_icon_into(tmp_path)
-    for name in install.EXTENSION_EXTRAS:
-        assert (tmp_path / name).exists()
+    # named as the extension expects it, whatever the source file is called
+    assert (tmp_path / install.PANEL_ICON_NAME).exists()
 
 
-def test_install_icons_places_svg_and_png(tmp_path, monkeypatch):
+def test_install_icons_writes_every_size(tmp_path, monkeypatch):
     monkeypatch.setattr(install, "_icons_dir", lambda: tmp_path / "hicolor")
     assert install.install_icons() is True
-    assert (tmp_path / "hicolor" / "scalable" / "apps" / "simpleclips.svg").exists()
-    assert (tmp_path / "hicolor" / "512x512" / "apps" / "simpleclips.png").exists()
+    for size in install.ICON_SIZES:
+        path = tmp_path / "hicolor" / f"{size}x{size}" / "apps" / "simpleclips.png"
+        assert path.exists(), f"missing {size}px icon"
+
+
+def test_install_desktop_points_at_the_settings(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "_applications_dir", lambda: tmp_path / "applications")
+    path = install.install_desktop()
+    text = path.read_text(encoding="utf-8")
+    assert "Name=SimpleClips" in text
+    assert "Icon=simpleclips" in text
+    # GNOME pairs the running window with this entry through the WM class
+    assert "StartupWMClass=Simpleclips" in text
+    exec_line = next(l for l in text.splitlines() if l.startswith("Exec="))
+    assert exec_line.endswith(" settings")
+
+
+def test_remove_desktop(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "_applications_dir", lambda: tmp_path / "applications")
+    install.install_desktop()
+    install.remove_desktop()
+    assert not (tmp_path / "applications" / install.DESKTOP_NAME).exists()
 
 
 def test_extension_metadata_is_valid_and_current():
@@ -37,5 +51,5 @@ def test_extension_metadata_is_valid_and_current():
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")
     )
     assert metadata["uuid"] == install.EXTENSION_UUID
-    assert metadata["version"] >= 3
+    assert metadata["version"] >= 4
     assert "shell-version" in metadata

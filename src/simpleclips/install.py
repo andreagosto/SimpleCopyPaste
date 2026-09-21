@@ -149,27 +149,45 @@ def _icon_source() -> Path:
     return Path(__file__).resolve().parent / "icons"
 
 
-def install_icons() -> bool:
-    """Place the app icon in the user's icon theme.
+# Sizes written into the user's icon theme. The source is the 512px artwork,
+# scaled down so every place GNOME asks for an icon has a fitting one.
+ICON_SIZES = (16, 24, 32, 48, 64, 128, 256, 512)
 
-    Both a scalable SVG and a 512px PNG are installed, so it resolves at any
-    size for the settings window, task switcher, notifications and menus.
+
+def install_icons() -> bool:
+    """Place the app icon in the user's icon theme, at several sizes.
+
+    The artwork is a detailed illustration, so it is pre-scaled here rather
+    than left to the theme's own downscaling: at 16-24px the difference is
+    visible in the launcher.
     """
-    source = _icon_source()
-    targets = [
-        (_icons_dir() / "scalable" / "apps" / "simpleclips.svg", source / "simpleclips.svg"),
-        (_icons_dir() / "512x512" / "apps" / "simpleclips.png", source / "simpleclips.png"),
-    ]
+    source = _icon_source() / "simpleclips.png"
+    if not source.exists():
+        return False
+    try:
+        from .gtk_ui import GdkPixbuf
+    except Exception as exc:
+        print(f"  could not load the icon renderer: {exc}", file=sys.stderr)
+        return False
+
     installed = False
-    for target, origin in targets:
-        if not origin.exists():
-            continue
+    for size in ICON_SIZES:
+        target = _icons_dir() / f"{size}x{size}" / "apps" / "simpleclips.png"
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(origin, target)
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                str(source), size, size, True
+            )
+            pixbuf.savev(str(target), "png", [], [])
             installed = True
-        except OSError as exc:
-            print(f"  could not install icon {target.name}: {exc}", file=sys.stderr)
+        except Exception as exc:
+            print(f"  could not install icon {size}px: {exc}", file=sys.stderr)
+
+    # An older build installed a scalable glyph under the same name; it would
+    # take priority at large sizes and shadow this artwork.
+    stale = _icons_dir() / "scalable" / "apps" / "simpleclips.svg"
+    stale.unlink(missing_ok=True)
+
     if installed:
         _run(["gtk-update-icon-cache", "--force", "--ignore-theme-index", str(_icons_dir())])
     return installed
@@ -179,9 +197,54 @@ def _extension_source() -> Path:
     return Path(__file__).resolve().parent / "gnome_extension"
 
 
-# Files copied into the extension folder, beyond its own JS/JSON. The panel
-# icon is bundled so the top-bar button works regardless of the icon theme.
-EXTENSION_EXTRAS = ["simpleclips.svg", "simpleclips.png"]
+DESKTOP_NAME = "simpleclips.desktop"
+DESKTOP_TEMPLATE = """\
+[Desktop Entry]
+Type=Application
+Name={app}
+Comment=Clipboard history at your cursor
+Exec={exec_path} settings
+Icon=simpleclips
+Terminal=false
+Categories=Utility;GTK;
+StartupNotify=true
+StartupWMClass=Simpleclips
+"""
+
+
+def _applications_dir() -> Path:
+    base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    return Path(base) / "applications"
+
+
+def install_desktop() -> Path:
+    """Write the launcher entry.
+
+    Needed for the dash and the app grid: it is what makes the running
+    settings window show up with our icon and name, and gives the app an
+    entry to launch from. ``StartupWMClass`` matches the window's WM_CLASS
+    so GNOME ties the window to this entry.
+    """
+    path = _applications_dir() / DESKTOP_NAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        DESKTOP_TEMPLATE.format(app=APP_NAME, exec_path=_exec_path()),
+        encoding="utf-8",
+    )
+    _run(["update-desktop-database", str(_applications_dir())])
+    return path
+
+
+def remove_desktop() -> None:
+    (_applications_dir() / DESKTOP_NAME).unlink(missing_ok=True)
+    _run(["update-desktop-database", str(_applications_dir())])
+
+
+# The panel icon is the simple glyph, not the illustration: at the 16px the
+# top bar uses, the detailed artwork turns to mush. It is bundled inside the
+# extension so the button works regardless of the icon theme.
+PANEL_ICON_SOURCE = "panel.svg"
+PANEL_ICON_NAME = "simpleclips.svg"
 
 
 def is_gnome_session() -> bool:
@@ -228,12 +291,10 @@ def _set_enabled_extensions(uuids: list[str]) -> None:
 
 
 def _copy_icon_into(target: Path) -> None:
-    """Place the app icon next to the extension, for its panel button."""
-    source = _icon_source()
-    for name in EXTENSION_EXTRAS:
-        origin = source / name
-        if origin.exists():
-            shutil.copyfile(origin, target / name)
+    """Place the panel glyph next to the extension, for its top-bar button."""
+    origin = _icon_source() / PANEL_ICON_SOURCE
+    if origin.exists():
+        shutil.copyfile(origin, target / PANEL_ICON_NAME)
 
 
 def install_extension(hotkey_note: list[str]) -> None:
@@ -304,7 +365,8 @@ def install(hotkey: str = "<Super><Alt>v") -> int:
     service = install_service()
     print(f"systemd user service: {service}")
     if install_icons():
-        print(f"app icon: {_icons_dir() / 'scalable' / 'apps' / 'simpleclips.svg'}")
+        print(f"app icon: {_icons_dir() / '512x512' / 'apps' / 'simpleclips.png'}")
+    print(f"launcher entry: {install_desktop()}")
     if install_keybinding(hotkey):
         print(f"GNOME shortcut: {hotkey} -> simpleclips toggle")
     else:
@@ -323,5 +385,6 @@ def uninstall() -> int:
     uninstall_service()
     remove_keybinding()
     remove_extension()
+    remove_desktop()
     print("SimpleClips removed from the desktop session.")
     return 0

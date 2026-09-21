@@ -14,6 +14,7 @@
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import Clutter from 'gi://Clutter';
+import GObject from 'gi://GObject';
 import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -58,6 +59,26 @@ const KEYS = {
     ins: 'KEY_Insert',
 };
 
+// PanelMenu.Button toggles its menu from vfunc_event, which runs *before*
+// any handler attached with connect(). Intercepting the primary button in a
+// subclass is the only way to keep the menu closed on a left click.
+const Indicator = GObject.registerClass(
+class SimpleClipsIndicator extends PanelMenu.Button {
+    _init(nameText, onPrimary) {
+        super._init(0.5, nameText, false);
+        this._onPrimary = onPrimary;
+    }
+
+    vfunc_event(event) {
+        if (event.type() === Clutter.EventType.BUTTON_PRESS &&
+            event.get_button() === Clutter.BUTTON_PRIMARY) {
+            this._onPrimary();
+            return Clutter.EVENT_STOP;
+        }
+        return super.vfunc_event(event);  // right click: open the menu
+    }
+});
+
 export default class SimpleClipsShellExtension extends Extension {
     enable() {
         this._device = null;
@@ -72,22 +93,31 @@ export default class SimpleClipsShellExtension extends Extension {
 
     _buildIndicator() {
         // Left click opens the settings directly, so the menu is left to the
-        // right button. PanelMenu.Button wants a menu to exist anyway.
-        this._indicator = new PanelMenu.Button(0.5, this.metadata.name, false);
+        // right button. The Indicator subclass keeps the two apart.
+        this._indicator = new Indicator(this.metadata.name, () => this._run('settings'));
         this._indicator.add_child(this._panelIcon());
 
         this._indicator.menu.addAction('Open clipboard', () => this._run('toggle'));
         this._indicator.menu.addAction('Settings', () => this._run('settings'));
 
-        this._indicator.connect('button-press-event', (_actor, event) => {
-            if (event.get_button() === Clutter.BUTTON_PRIMARY) {
-                this._run('settings');
-                return Clutter.EVENT_STOP;  // keep the menu closed
-            }
-            return Clutter.EVENT_PROPAGATE;  // right click: show the menu
-        });
+        Main.panel.addToStatusArea(
+            this.uuid, this._indicator, 1, this._panelPosition());
+    }
 
-        Main.panel.addToStatusArea(this.uuid, this._indicator, 0, 'right');
+    _panelPosition() {
+        // Sit with the tray icons (Docker, VPN, ...), wherever the
+        // AppIndicator extension has been told to put them.
+        try {
+            const settings = new Gio.Settings({
+                schema_id: 'org.gnome.shell.extensions.appindicator',
+            });
+            const position = settings.get_string('tray-pos');
+            if (['left', 'center', 'right'].includes(position))
+                return position;
+        } catch (error) {
+            // Schema not installed: fall back to the conventional side.
+        }
+        return 'right';
     }
 
     _panelIcon() {
