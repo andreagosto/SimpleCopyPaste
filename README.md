@@ -142,9 +142,20 @@ PyGObject (`gi`) is a system package and cannot be installed from PyPI, so the
 pipx environment must be allowed to see system packages:
 
 ```bash
+pipx install --system-site-packages git+https://github.com/andreagosto/SimpleCopyPaste
+simplecopypaste install       # systemd user service, shortcut, GNOME extension
+```
+
+From a local clone, replace the URL with the checkout path:
+
+```bash
 pipx install --system-site-packages .
-# or once published:  pipx install --system-site-packages simplecopypaste
-simplecopypaste install       # systemd user service + Super+Alt+V shortcut
+```
+
+For development, add `--editable` so code changes take effect immediately:
+
+```bash
+pipx install --system-site-packages --editable .
 ```
 
 `simplecopypaste install` does three things:
