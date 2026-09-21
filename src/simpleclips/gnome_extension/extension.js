@@ -59,6 +59,12 @@ const KEYS = {
     ins: 'KEY_Insert',
 };
 
+// Panel icons take the bar's foreground colour, which on a dark bar is pure
+// white and reads harsher than the neighbouring tray icons. Dim ours a little
+// by lowering the actor's opacity: unlike a fixed grey, this also does the
+// right thing on a light bar, where it softens the black instead.
+const ICON_OPACITY = 0.82;
+
 // PanelMenu.Button toggles its menu from vfunc_event, which runs *before*
 // any handler attached with connect(). Intercepting the primary button in a
 // subclass is the only way to keep the menu closed on a left click.
@@ -128,7 +134,6 @@ export default class SimpleClipsShellExtension extends Extension {
         // its size in stylesheet.css: at the theme's default it is too small
         // to read.
         let gicon;
-        const classes = ['system-status-icon', 'simpleclips-panel-icon'];
         if (this._symbolicInstalled()) {
             gicon = Gio.icon_new_for_string('simpleclips-symbolic');
         } else {
@@ -139,7 +144,12 @@ export default class SimpleClipsShellExtension extends Extension {
             else
                 gicon = Gio.icon_new_for_string('simpleclips');
         }
-        return new St.Icon({ gicon, style_class: classes.join(' ') });
+        const icon = new St.Icon({
+            gicon,
+            style_class: 'system-status-icon simpleclips-panel-icon',
+        });
+        icon.opacity = Math.round(ICON_OPACITY * 255);
+        return icon;
     }
 
     _symbolicInstalled() {
