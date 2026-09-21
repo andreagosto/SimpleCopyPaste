@@ -93,10 +93,10 @@ provides all three:
 
 It only acts when you ask for it.
 
-The top-bar button uses its own simpler mark, not the app artwork: the panel
-draws it at around 16px, where the detailed illustration turns to mush. The
-illustration is used everywhere it has room — launcher, dash, window and
-notifications — as a set of pre-scaled PNGs in your icon theme.
+The top-bar button uses a **symbolic** (line-art) mark, installed into your
+icon theme so GNOME recolours it and it stays visible on a light or dark bar.
+The detailed illustration is used everywhere it has room — launcher, dash,
+window and notifications — as pre-scaled PNGs in the same theme.
 
 After installing, **log out and back in once** so GNOME Shell loads it
 (Wayland cannot reload the Shell in place). Check with `simpleclips doctor`:

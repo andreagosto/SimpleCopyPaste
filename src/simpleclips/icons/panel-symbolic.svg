@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg height="16px" viewBox="0 0 16 16" width="16px" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    SimpleClips panel mark, symbolic.
+
+    Line art on a 16x16 grid, in the style GNOME uses for panel icons: a
+    single ink colour that the shell replaces with the theme's foreground,
+    so the mark follows a light or dark top bar. Scissors cutting a small
+    notepad.
+
+    The comment lives inside the root element on purpose: gdk-pixbuf sniffs
+    the first bytes to pick a loader, and anything before "<svg" delays that
+    match past its window.
+  -->
+  <g fill="none" stroke="#2e3436" stroke-width="1.25"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- scissors: two blades crossing, a ring on each handle -->
+    <path d="M 2.9 2.3 L 8.5 11.2"/>
+    <path d="M 9.5 2.3 L 3.9 11.2"/>
+    <circle cx="8.9" cy="12.7" r="1.5"/>
+    <circle cx="3.5" cy="12.7" r="1.5"/>
+    <!-- notepad -->
+    <rect x="10.7" y="2.4" width="3.9" height="5.6" rx="0.6"/>
+    <path d="M 11.5 4.5 L 13.8 4.5"/>
+    <path d="M 11.5 6.6 L 13.8 6.6"/>
+  </g>
+  <!-- pivot -->
+  <circle cx="6.2" cy="7.1" r="0.6" fill="#2e3436"/>
+</svg>

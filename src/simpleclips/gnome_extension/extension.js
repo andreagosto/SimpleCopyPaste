@@ -121,15 +121,36 @@ export default class SimpleClipsShellExtension extends Extension {
     }
 
     _panelIcon() {
-        // Prefer the icon shipped inside the extension itself, so the panel
-        // is right even if the icon theme copy is missing.
+        // The panel asks for symbolic icons and recolours them itself, so the
+        // mark follows a light or dark top bar. That only works when the icon
+        // is loaded *by name* from the icon theme, which is why the symbolic
+        // one is installed there and preferred here.
         let gicon;
-        const bundled = this.dir.get_child('panel.png');
-        if (bundled.query_exists(null))
-            gicon = Gio.icon_new_for_string(bundled.get_path());
-        else
-            gicon = Gio.icon_new_for_string('simpleclips');
-        return new St.Icon({ gicon, style_class: 'system-status-icon' });
+        let styleClass = 'system-status-icon';
+        if (this._symbolicInstalled()) {
+            gicon = Gio.icon_new_for_string('simpleclips-symbolic');
+        } else {
+            // Fallback: a ready-coloured PNG shipped inside the extension,
+            // drawn as an image rather than looked up as a symbolic icon.
+            const bundled = this.dir.get_child('panel.png');
+            if (bundled.query_exists(null)) {
+                gicon = Gio.icon_new_for_string(bundled.get_path());
+                styleClass = 'system-status-icon simpleclips-panel-icon';
+            } else {
+                gicon = Gio.icon_new_for_string('simpleclips');
+            }
+        }
+        return new St.Icon({ gicon, style_class: styleClass });
+    }
+
+    _symbolicInstalled() {
+        const name = 'simpleclips-symbolic.svg';
+        const dirs = GLib.get_system_data_dirs().concat([GLib.get_user_data_dir()]);
+        return dirs.some((dir) => {
+            const path = GLib.build_filenamev(
+                [dir, 'icons', 'hicolor', 'symbolic', 'apps', name]);
+            return Gio.File.new_for_path(path).query_exists(null);
+        });
     }
 
     _run(command) {

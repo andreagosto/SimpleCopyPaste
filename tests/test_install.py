@@ -9,8 +9,25 @@ from simpleclips import install
 
 def test_bundled_icons_exist():
     source = install._icon_source()
-    assert (source / "simpleclips.png").exists()          # artwork, app icon
-    assert (source / install.PANEL_ICON_SOURCE).exists()  # panel mark
+    assert (source / "simpleclips.png").exists()               # artwork, app icon
+    assert (source / install.PANEL_ICON_SOURCE).exists()        # panel fallback
+    assert (source / install.PANEL_ICON_SYMBOLIC).exists()      # panel symbolic
+
+
+def test_panel_symbolic_name_carries_the_suffix():
+    # GTK resolves "simpleclips-symbolic" by looking for a file of that name,
+    # so the suffix has to be part of it.
+    assert install.PANEL_ICON_NAME_SYMBOLIC.endswith("-symbolic")
+
+
+def test_panel_symbolic_is_wellformed_and_starts_with_svg(tmp_path):
+    # gdk-pixbuf sniffs the first bytes to pick a loader: anything before
+    # "<svg" pushes the match out of its window and the icon fails to load.
+    path = install._icon_source() / install.PANEL_ICON_SYMBOLIC
+    head = path.read_bytes()[:400]
+    svg_at = head.find(b"<svg")
+    assert svg_at != -1
+    assert b"<!--" not in head[:svg_at], "a comment before <svg breaks loading"
 
 
 def test_copy_panel_icon_into_extension(tmp_path):
@@ -25,6 +42,16 @@ def test_install_icons_writes_every_size(tmp_path, monkeypatch):
     for size in install.ICON_SIZES:
         path = tmp_path / "hicolor" / f"{size}x{size}" / "apps" / "simpleclips.png"
         assert path.exists(), f"missing {size}px icon"
+
+
+def test_install_icons_writes_the_symbolic(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "_icons_dir", lambda: tmp_path / "hicolor")
+    install.install_icons()
+    symbolic = (
+        tmp_path / "hicolor" / "symbolic" / "apps"
+        / f"{install.PANEL_ICON_NAME_SYMBOLIC}.svg"
+    )
+    assert symbolic.exists()
 
 
 def test_install_desktop_points_at_the_settings(tmp_path, monkeypatch):
@@ -51,5 +78,5 @@ def test_extension_metadata_is_valid_and_current():
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")
     )
     assert metadata["uuid"] == install.EXTENSION_UUID
-    assert metadata["version"] >= 5
+    assert metadata["version"] >= 6
     assert "shell-version" in metadata

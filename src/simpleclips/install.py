@@ -159,7 +159,8 @@ def install_icons() -> bool:
 
     The artwork is a detailed illustration, so it is pre-scaled here rather
     than left to the theme's own downscaling: at 16-24px the difference is
-    visible in the launcher.
+    visible in the launcher. A symbolic (line-art) variant is installed too,
+    under the name the top bar asks for.
     """
     source = _icon_source() / "simpleclips.png"
     if not source.exists():
@@ -183,10 +184,23 @@ def install_icons() -> bool:
         except Exception as exc:
             print(f"  could not install icon {size}px: {exc}", file=sys.stderr)
 
-    # An older build installed a scalable glyph under the same name; it would
-    # take priority at large sizes and shadow this artwork.
-    stale = _icons_dir() / "scalable" / "apps" / "simpleclips.svg"
-    stale.unlink(missing_ok=True)
+    # The symbolic mark goes into the theme by name; the shell recolours it
+    # to match a light or dark top bar. See PANEL_ICON_SYMBOLIC.
+    symbolic_source = _icon_source() / PANEL_ICON_SYMBOLIC
+    if symbolic_source.exists():
+        try:
+            target = (
+                _icons_dir() / "symbolic" / "apps" / f"{PANEL_ICON_NAME_SYMBOLIC}.svg"
+            )
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(symbolic_source, target)
+            installed = True
+        except OSError as exc:
+            print(f"  could not install the symbolic icon: {exc}", file=sys.stderr)
+
+    # An older build installed a scalable glyph under the plain name; it
+    # would take priority at large sizes and shadow this artwork.
+    (_icons_dir() / "scalable" / "apps" / "simpleclips.svg").unlink(missing_ok=True)
 
     if installed:
         _run(["gtk-update-icon-cache", "--force", "--ignore-theme-index", str(_icons_dir())])
@@ -240,10 +254,17 @@ def remove_desktop() -> None:
     _run(["update-desktop-database", str(_applications_dir())])
 
 
-# The panel button uses a separate, simpler mark than the app artwork: the
-# top bar draws it around 16px, where the detailed illustration turns to
-# mush. It is bundled inside the extension so the button works regardless of
-# the icon theme.
+# The top bar draws its icons at about 16px, where the detailed illustration
+# turns to mush, and it asks for a *symbolic* icon: a single ink colour the
+# shell replaces with the theme foreground, so the mark follows a light or
+# dark bar. Two files serve that:
+#
+#   * panel-symbolic.svg — installed into the theme, looked up by name, and
+#     therefore recoloured. This is the one the panel normally uses.
+#   * panel.png — a ready-coloured fallback bundled inside the extension, for
+#     when the theme copy is missing (the app running from a checkout).
+PANEL_ICON_SYMBOLIC = "panel-symbolic.svg"
+PANEL_ICON_NAME_SYMBOLIC = "simpleclips-symbolic"
 PANEL_ICON_SOURCE = "panel.png"
 PANEL_ICON_NAME = "panel.png"
 
