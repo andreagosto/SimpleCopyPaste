@@ -1,0 +1,129 @@
+// SimpleClips Shell - a tiny companion for the SimpleClips clipboard tool.
+//
+// GNOME Wayland does not let applications read the global pointer position
+// or synthesize keystrokes, so this extension forwards both from the
+// compositor:
+//
+//   - GetPointer: where the cursor is, so the popup opens at the mouse.
+//   - Paste:      a Ctrl+V (or other combo) so picking a clip pastes it,
+//                 with no need for ydotool or any extra permission.
+//
+// It only acts when the user picks a clip in SimpleClips.
+
+import Gio from 'gi://Gio';
+import Clutter from 'gi://Clutter';
+
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
+
+const IFACE = `
+<node>
+  <interface name="org.simpleclips.Shell">
+    <method name="GetPointer">
+      <arg type="i" direction="out" name="x"/>
+      <arg type="i" direction="out" name="y"/>
+    </method>
+    <method name="Paste">
+      <arg type="s" direction="in" name="combo"/>
+      <arg type="b" direction="in" name="dry"/>
+      <arg type="b" direction="out" name="ok"/>
+    </method>
+    <method name="Ping">
+      <arg type="b" direction="out" name="ok"/>
+    </method>
+  </interface>
+</node>`;
+
+const OBJECT_PATH = '/org/simpleclips/Shell';
+
+const MODIFIERS = {
+    ctrl: 'KEY_Control_L',
+    control: 'KEY_Control_L',
+    shift: 'KEY_Shift_L',
+    alt: 'KEY_Alt_L',
+    super: 'KEY_Super_L',
+    meta: 'KEY_Super_L',
+};
+
+const KEYS = {
+    v: 'KEY_v',
+    c: 'KEY_c',
+    insert: 'KEY_Insert',
+    ins: 'KEY_Insert',
+};
+
+export default class SimpleClipsShellExtension extends Extension {
+    enable() {
+        this._device = null;
+        this._object = Gio.DBusExportedObject.wrapJSObject(IFACE, this);
+        this._object.export(Gio.DBus.session, OBJECT_PATH);
+    }
+
+    GetPointer() {
+        const [x, y] = global.get_pointer();
+        return [Math.round(x), Math.round(y)];
+    }
+
+    Ping() {
+        return true;
+    }
+
+    // Parses "ctrl+shift+v" into [keysym, ...]; null when unsupported.
+    _parse(combo) {
+        const parts = String(combo || '')
+            .toLowerCase()
+            .split('+')
+            .map((part) => part.trim())
+            .filter((part) => part.length > 0);
+        if (parts.length === 0)
+            return null;
+
+        const key = parts[parts.length - 1];
+        const keyName = KEYS[key];
+        if (!keyName)
+            return null;
+
+        const keysyms = [];
+        for (const part of parts.slice(0, -1)) {
+            const modName = MODIFIERS[part];
+            if (!modName)
+                return null;  // unknown modifier: refuse rather than guess
+            keysyms.push(Clutter[modName]);
+        }
+        keysyms.push(Clutter[keyName]);
+        if (keysyms.some((k) => k === undefined))
+            return null;
+        return keysyms;
+    }
+
+    Paste(combo, dry) {
+        const keysyms = this._parse(combo);
+        if (keysyms === null)
+            return false;
+        if (dry)
+            return true;  // validate the combo without touching input
+
+        try {
+            const seat = Clutter.get_default_backend().get_default_seat();
+            if (!this._device)
+                this._device = seat.create_virtual_device(Clutter.VirtualDeviceType.KEYBOARD);
+            const time = Clutter.get_current_event_time();
+            for (const keysym of keysyms)
+                this._device.notify_keyval(time, keysym, Clutter.KeyState.PRESSED);
+            for (const sym of [...keysyms].reverse())
+                this._device.notify_keyval(time, sym, Clutter.KeyState.RELEASED);
+            return true;
+        } catch (error) {
+            logError(error, 'SimpleClips: could not synthesize the paste shortcut');
+            this._device = null;
+            return false;
+        }
+    }
+
+    disable() {
+        this._device = null;
+        if (this._object) {
+            this._object.unexport();
+            this._object = null;
+        }
+    }
+}

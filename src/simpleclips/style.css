@@ -1,0 +1,241 @@
+/* SimpleClips popup - same visual language as the settings window:
+   white sheet, consistent 18px gutters, quiet rows, orange accents. */
+
+.sc-popup {
+    background-color: #ffffff;
+    border: 1px solid rgba(60, 42, 20, 0.22);
+    border-radius: 12px;
+}
+
+.sc-popup-title {
+    color: #1f1b15;
+    font-size: 19px;
+    font-weight: bold;
+    padding: 16px 18px 10px 18px;
+}
+
+.sc-header {
+    padding: 0 12px 10px 12px;
+}
+
+.sc-search {
+    padding: 8px 12px;
+    min-height: 26px;
+    border-radius: 8px;
+    border: 1px solid rgba(60, 42, 20, 0.18);
+    background-color: #ffffff;
+    color: #1f1b15;
+    font-size: 17px;
+}
+
+.sc-search:focus {
+    border-color: rgba(176, 106, 59, 0.65);
+}
+
+.sc-list {
+    background-color: transparent;
+    border-top: 1px solid rgba(60, 42, 20, 0.08);
+}
+
+/* Same treatment as .sc-settings-section, so the popup groups read as
+   part of the same family. */
+.sc-section {
+    color: #b06a3b;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 18px 4px 18px;
+}
+
+/* Gtk.EventBox ignores CSS padding, so the inset lives on the inner
+   content box. */
+.sc-row-content {
+    padding: 7px 18px;
+}
+
+/* Image rows carry a taller thumbnail, so give them a little more room. */
+.sc-row-content.sc-image {
+    padding: 8px 18px;
+}
+
+.sc-row {
+    border-left: 4px solid transparent;
+}
+
+.sc-row:hover {
+    background-color: rgba(60, 42, 20, 0.05);
+}
+
+/* Selected wins over every other row state, so it comes last. */
+.sc-row.sc-selected {
+    background-color: rgba(176, 106, 59, 0.14);
+}
+
+/* The clip currently on the system clipboard gets a discreet colored
+   left border so it stands out from the rest. */
+.sc-row.sc-active {
+    border-left-color: #b06a3b;
+}
+
+.sc-preview {
+    color: #1f1b15;
+    font-size: 18px;
+}
+
+.sc-thumb {
+    border-radius: 4px;
+    border: 1px solid rgba(60, 42, 20, 0.14);
+}
+
+.sc-thumb-missing {
+    color: #c9bfae;
+    font-size: 20px;
+    padding: 0 6px;
+}
+
+.sc-meta {
+    color: #8f8678;
+    font-size: 14px;
+    padding-left: 10px;
+}
+
+.sc-pin {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0 4px;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+/* The pin is a Cairo-drawn Gtk.DrawingArea, colored through CSS. */
+.sc-pin-icon {
+    color: #c4bbab;
+}
+
+.sc-pin:hover .sc-pin-icon,
+.sc-pin-icon.on {
+    color: #b06a3b;
+}
+
+.sc-hint {
+    color: #8f8678;
+    font-size: 12px;
+    padding: 7px 18px 9px 18px;
+}
+
+.sc-hint.sc-warning {
+    color: #a4432b;
+    background-color: #fdf1ec;
+}
+
+.sc-footer {
+    border-top: 1px solid rgba(60, 42, 20, 0.08);
+}
+
+.sc-tool {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: #b8ae9d;
+    padding: 4px 6px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.sc-tool:hover {
+    color: #b06a3b;
+}
+
+/* ------------------------------------------------------------- settings */
+
+.sc-settings {
+    background-color: #ffffff;
+}
+
+.sc-settings-title {
+    color: #1f1b15;
+    font-size: 19px;
+    font-weight: bold;
+    padding: 16px 18px 10px 18px;
+}
+
+.sc-settings-section {
+    color: #b06a3b;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 14px 18px 4px 18px;
+}
+
+.sc-settings-row {
+    padding: 7px 18px;
+}
+
+.sc-settings-name {
+    color: #1f1b15;
+    font-size: 15px;
+}
+
+.sc-settings-hint {
+    color: #8f8678;
+    font-size: 12px;
+}
+
+.sc-settings-unit {
+    color: #8f8678;
+    font-size: 13px;
+}
+
+.sc-settings-status {
+    color: #4f7a52;
+    font-size: 12px;
+    padding: 6px 18px;
+}
+
+.sc-settings-actions {
+    padding: 10px 18px;
+    border-top: 1px solid rgba(60, 42, 20, 0.08);
+}
+
+.sc-settings-footer {
+    padding: 12px 18px 16px 18px;
+}
+
+.sc-btn {
+    background-image: none;
+    background-color: #f2f1ee;
+    color: #1f1b15;
+    border: 1px solid rgba(60, 42, 20, 0.18);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.sc-btn:hover {
+    background-color: #eceae4;
+}
+
+.sc-btn.sc-btn-primary {
+    background-image: none;
+    background-color: #b06a3b;
+    color: #ffffff;
+    border-color: #9c5d33;
+}
+
+.sc-btn.sc-btn-primary:hover {
+    background-color: #9c5d33;
+}
+
+.sc-settings switch {
+    margin: 0;
+}
+
+.sc-settings spinbutton {
+    color: #1f1b15;
+}
+
+.sc-empty {
+    color: #8f8678;
+    font-size: 17px;
+    padding: 24px 12px;
+}

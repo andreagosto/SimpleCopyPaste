@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simpleclips"
+version = "0.1.0"
+description = "A tiny Win+V style clipboard history for Linux desktops (GNOME/Wayland friendly)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "simpleclips contributors" }]
+keywords = ["clipboard", "clipboard-manager", "gnome", "wayland", "gtk", "productivity"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: X11 Applications :: GTK",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Desktop Environment :: Gnome",
+    "Topic :: Utilities",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
+[project.scripts]
+simpleclips = "simpleclips.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/simpleclips"
+Issues = "https://github.com/OWNER/simpleclips/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+simpleclips = ["style.css", "gnome_extension/*.js", "gnome_extension/*.json"]
