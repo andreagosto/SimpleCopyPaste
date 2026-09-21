@@ -41,6 +41,7 @@ simpleclips = [
     "style.css",
     "gnome_extension/*.js",
     "gnome_extension/*.json",
+    "gnome_extension/*.css",
     "icons/*.svg",
     "icons/*.png",
 ]

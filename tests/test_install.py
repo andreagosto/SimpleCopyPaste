@@ -30,6 +30,14 @@ def test_panel_symbolic_is_wellformed_and_starts_with_svg(tmp_path):
     assert b"<!--" not in head[:svg_at], "a comment before <svg breaks loading"
 
 
+def test_extension_ships_a_stylesheet():
+    # The panel draws status icons too small for a mark to read; the
+    # stylesheet turns ours up. GNOME only loads it from this exact filename.
+    stylesheet = install._extension_source() / "stylesheet.css"
+    assert stylesheet.exists()
+    assert "icon-size" in stylesheet.read_text(encoding="utf-8")
+
+
 def test_copy_panel_icon_into_extension(tmp_path):
     install._copy_icon_into(tmp_path)
     # named as the extension expects it, whatever the source file is called
@@ -78,5 +86,5 @@ def test_extension_metadata_is_valid_and_current():
         (install._extension_source() / "metadata.json").read_text(encoding="utf-8")
     )
     assert metadata["uuid"] == install.EXTENSION_UUID
-    assert metadata["version"] >= 6
+    assert metadata["version"] >= 7
     assert "shell-version" in metadata

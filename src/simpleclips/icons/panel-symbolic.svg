@@ -3,15 +3,14 @@
   <!--
     SimpleClips panel mark, symbolic.
 
-    A clipboard silhouette: the simplest shape that still says "clipboard"
-    at the 16px the top bar uses. An earlier line-art version (scissors and
-    a notepad) turned to mush at that size. The single ink colour is
-    replaced by the shell with the theme foreground, so the mark follows a
-    light or dark bar.
+    Scissors as a solid silhouette, sized to fill the 16x16 grid so it
+    stays readable at the small size the top bar draws. The single ink
+    colour is replaced by the shell with the theme foreground, so the
+    mark follows a light or dark bar.
 
-    This comment sits inside the root element on purpose: gdk-pixbuf sniffs
-    the opening bytes to pick a loader, and text before "<svg" pushes the
-    match out of its window, making the icon fail to load.
+    This comment sits inside the root element on purpose: gdk-pixbuf
+    sniffs the opening bytes to pick a loader, and text before "<svg"
+    pushes the match out of its window, making the icon fail to load.
   -->
-  <path fill="#2e3436" d="M 6 1 a 1 1 0 0 0 -1 1 H 4 A 2 2 0 0 0 2 4 v 9 a 2 2 0 0 0 2 2 h 8 a 2 2 0 0 0 2 -2 V 4 A 2 2 0 0 0 12 2 H 11 A 1 1 0 0 0 10 1 z m -2 3 h 1 v 1 h 6 V 4 h 1 v 9 H 4 z m 2 3 v 1.5 h 5 V 7 z m 0 3 v 1.5 h 3 V 10 z"/>
+  <path fill="#2e3436" fill-rule="nonzero" d="M 1.50 12.30 a 2.55 2.55 0 1 1 5.10 0 a 2.55 2.55 0 1 1 -5.10 0 Z M 2.90 12.30 a 1.15 1.15 0 1 0 2.30 0 a 1.15 1.15 0 1 0 -2.30 0 Z M 9.40 12.30 a 2.55 2.55 0 1 1 5.10 0 a 2.55 2.55 0 1 1 -5.10 0 Z M 10.80 12.30 a 1.15 1.15 0 1 0 2.30 0 a 1.15 1.15 0 1 0 -2.30 0 Z M 2.95 9.35 L 11.35 1.15 L 12.35 2.10 L 5.15 9.85 Z M 13.05 9.35 L 4.65 1.15 L 3.65 2.10 L 10.85 9.85 Z"/>
 </svg>

@@ -3,6 +3,6 @@
   "name": "SimpleClips Shell",
   "description": "Companion for SimpleClips: a top-bar icon, the global pointer position, and the paste shortcut. Lets the clipboard popup open at the cursor and paste on GNOME Wayland.",
   "shell-version": ["45", "46", "47"],
-  "version": 6,
+  "version": 7,
   "url": "https://github.com/andreagosto/simpleclips"
 }

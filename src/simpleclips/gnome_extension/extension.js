@@ -124,23 +124,22 @@ export default class SimpleClipsShellExtension extends Extension {
         // The panel asks for symbolic icons and recolours them itself, so the
         // mark follows a light or dark top bar. That only works when the icon
         // is loaded *by name* from the icon theme, which is why the symbolic
-        // one is installed there and preferred here.
+        // one is installed there and preferred here. The extra class turns up
+        // its size in stylesheet.css: at the theme's default it is too small
+        // to read.
         let gicon;
-        let styleClass = 'system-status-icon';
+        const classes = ['system-status-icon', 'simpleclips-panel-icon'];
         if (this._symbolicInstalled()) {
             gicon = Gio.icon_new_for_string('simpleclips-symbolic');
         } else {
-            // Fallback: a ready-coloured PNG shipped inside the extension,
-            // drawn as an image rather than looked up as a symbolic icon.
+            // Fallback: a ready-coloured PNG shipped inside the extension.
             const bundled = this.dir.get_child('panel.png');
-            if (bundled.query_exists(null)) {
+            if (bundled.query_exists(null))
                 gicon = Gio.icon_new_for_string(bundled.get_path());
-                styleClass = 'system-status-icon simpleclips-panel-icon';
-            } else {
+            else
                 gicon = Gio.icon_new_for_string('simpleclips');
-            }
         }
-        return new St.Icon({ gicon, style_class: styleClass });
+        return new St.Icon({ gicon, style_class: classes.join(' ') });
     }
 
     _symbolicInstalled() {
