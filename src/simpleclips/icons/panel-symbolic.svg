@@ -3,14 +3,16 @@
   <!--
     SimpleClips panel mark, symbolic.
 
-    Scissors as a solid silhouette, sized to fill the 16x16 grid so it
-    stays readable at the small size the top bar draws. The single ink
-    colour is replaced by the shell with the theme foreground, so the
-    mark follows a light or dark bar.
+    Scissors as a solid silhouette: two legs crossing at the pivot, each
+    a ring below and a blade tapering to a point above. Sized to fill the
+    16x16 grid so it stays readable at the small size the top bar draws.
+    The single ink colour is replaced by the shell with the theme
+    foreground, so the mark follows a light or dark bar.
 
     This comment sits inside the root element on purpose: gdk-pixbuf
     sniffs the opening bytes to pick a loader, and text before "<svg"
     pushes the match out of its window, making the icon fail to load.
   -->
-  <path fill="#2e3436" fill-rule="nonzero" d="M 1.50 12.30 a 2.55 2.55 0 1 1 5.10 0 a 2.55 2.55 0 1 1 -5.10 0 Z M 2.90 12.30 a 1.15 1.15 0 1 0 2.30 0 a 1.15 1.15 0 1 0 -2.30 0 Z M 9.40 12.30 a 2.55 2.55 0 1 1 5.10 0 a 2.55 2.55 0 1 1 -5.10 0 Z M 10.80 12.30 a 1.15 1.15 0 1 0 2.30 0 a 1.15 1.15 0 1 0 -2.30 0 Z M 2.95 9.35 L 11.35 1.15 L 12.35 2.10 L 5.15 9.85 Z M 13.05 9.35 L 4.65 1.15 L 3.65 2.10 L 10.85 9.85 Z"/>
+  <path fill="#2e3436" d="M 4.33 10.23 L 7.36 6.20 L 7.47 6.07 L 13.65 0.85 L 8.53 7.13 L 8.64 7.00 L 6.37 11.49 ZM 0.90 12.55 a 3.05 3.05 0 1 1 6.10 0 a 3.05 3.05 0 1 1 -6.10 0 ZM 2.20 12.55 a 1.75 1.75 0 1 0 3.50 0 a 1.75 1.75 0 1 0 -3.50 0 Z"/>
+  <path fill="#2e3436" d="M 9.63 11.49 L 7.36 7.00 L 7.47 7.13 L 2.35 0.85 L 8.53 6.07 L 8.64 6.20 L 11.67 10.23 ZM 9.00 12.55 a 3.05 3.05 0 1 1 6.10 0 a 3.05 3.05 0 1 1 -6.10 0 ZM 10.30 12.55 a 1.75 1.75 0 1 0 3.50 0 a 1.75 1.75 0 1 0 -3.50 0 Z"/>
 </svg>
