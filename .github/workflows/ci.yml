@@ -9,17 +9,20 @@ jobs:
   test:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             python3-gi gir1.2-gtk-3.0 gir1.2-gdkpixbuf-2.0 \
-            python3-pytest
+            python3-pil python3-pytest \
+            xvfb
 
       - name: Run tests
-        run: python3 -m pytest tests -q
+        # A virtual display: some tests build real GTK windows to check the
+        # focus and click-away behaviour, and GTK needs a display for that.
+        run: xvfb-run -a python3 -m pytest tests -q
 
       - name: Byte-compile
         run: python3 -m compileall -q src

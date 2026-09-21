@@ -42,17 +42,17 @@ def make_settings():
     return SettingsWindow(App())
 
 
-def test_wheel_is_ignored_when_the_field_is_not_focused():
+def test_wheel_is_ignored_when_the_field_is_not_focused(gui):
     window = make_settings()
     assert window._on_spin_scroll(FakeSpin(focused=False), None) is True
 
 
-def test_wheel_works_when_the_field_is_focused():
+def test_wheel_works_when_the_field_is_focused(gui):
     window = make_settings()
     assert window._on_spin_scroll(FakeSpin(focused=True), None) is False
 
 
-def test_every_number_field_ignores_the_wheel():
+def test_every_number_field_ignores_the_wheel(gui):
     # guards against a new field forgetting the handler
     window = make_settings()
     fields = [
@@ -97,7 +97,7 @@ def test_no_popup_with_no_combos():
     assert any_popup_open([]) is False
 
 
-def test_settings_does_not_close_while_a_dropdown_is_open():
+def test_settings_does_not_close_while_a_dropdown_is_open(gui):
     # A dropdown lives in its own toplevel, so opening it moves focus away.
     # The close-on-focus-loss path must stand down while one is open.
     window = make_settings()
@@ -110,7 +110,7 @@ def test_settings_does_not_close_while_a_dropdown_is_open():
         window.window.destroy()
 
 
-def test_settings_closes_when_no_dropdown_is_open():
+def test_settings_closes_when_no_dropdown_is_open(gui):
     window = make_settings()
     window._choice_boxes.append(FakeCombo(False))
     window.window.show_all()
