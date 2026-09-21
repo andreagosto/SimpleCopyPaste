@@ -70,7 +70,16 @@ def _env_extra() -> str:
 
 
 def _run(argv: list[str], check: bool = False) -> subprocess.CompletedProcess:
-    return subprocess.run(argv, capture_output=True, text=True, check=check)
+    """Run a helper command, tolerating one that is not installed.
+
+    These helpers (gsettings, systemctl, update-desktop-database, ...) are
+    all optional niceties: a missing one should degrade the integration, not
+    crash the install. A missing binary is reported as exit code 127.
+    """
+    try:
+        return subprocess.run(argv, capture_output=True, text=True, check=check)
+    except FileNotFoundError:
+        return subprocess.CompletedProcess(argv, 127, "", f"{argv[0]}: not found")
 
 
 def _gsettings_get(schema: str, key: str) -> str:

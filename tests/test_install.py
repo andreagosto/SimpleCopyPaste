@@ -129,3 +129,25 @@ def test_extension_metadata_is_valid_and_current():
     assert metadata["uuid"] == install.EXTENSION_UUID
     assert metadata["version"] >= 10
     assert "shell-version" in metadata
+
+
+def test_missing_helper_does_not_crash_install(monkeypatch):
+    # A machine without desktop-file-utils (or systemctl, or gsettings) must
+    # still install: the helpers are niceties, not requirements.
+    monkeypatch.setattr(
+        install.subprocess, "run",
+        lambda *a, **k: (_ for _ in ()).throw(FileNotFoundError("nope")),
+    )
+    result = install._run(["update-desktop-database", "/tmp"])
+    assert result.returncode == 127
+
+
+def test_install_desktop_survives_a_missing_helper(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "_applications_dir", lambda: tmp_path / "applications")
+    monkeypatch.setattr(
+        install.subprocess, "run",
+        lambda *a, **k: (_ for _ in ()).throw(FileNotFoundError("nope")),
+    )
+    path = install.install_desktop()
+    assert path.exists()
+    install.remove_desktop()  # also must not raise
